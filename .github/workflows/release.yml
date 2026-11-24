@@ -1,0 +1,35 @@
+name: Release
+
+# Wydanie: `git tag v0.1.0 && git push origin v0.1.0`. Wersja w package.json musi
+# zgadzać się z tagiem — electron-builder bierze ją do nazwy instalatora i latest.yml.
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: write
+
+jobs:
+  windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - name: Sprawdź zgodność tagu z package.json
+        shell: bash
+        run: |
+          version="$(node -p "require('./package.json').version")"
+          if [ "v$version" != "$GITHUB_REF_NAME" ]; then
+            echo "Tag $GITHUB_REF_NAME nie zgadza się z wersją $version w package.json"
+            exit 1
+          fi
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm test
+      - name: Build i publikacja w GitHub Releases
+        run: npm run release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
