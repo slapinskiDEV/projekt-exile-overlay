@@ -29,7 +29,23 @@ jobs:
       - run: npm ci
       - run: npm run typecheck
       - run: npm test
-      - name: Build i publikacja w GitHub Releases
-        run: npm run release
+      # Budujemy bez publikacji, a pliki wgrywa `gh` — przy `--publish always`
+      # electron-builder kończył proces w trakcie wysyłania instalatora i w wydaniu
+      # zostawał sam `.blockmap`, bez `.exe` i `latest.yml` (v0.1.0, 24.11.2026).
+      - name: Build instalatora
+        run: npm run build && npx electron-builder --win --x64 --publish never
+      - name: Publikacja w GitHub Releases
+        shell: bash
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          files=(dist/*.exe dist/*.exe.blockmap dist/latest.yml)
+          ls -l "${files[@]}"
+          if gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1; then
+            gh release upload "$GITHUB_REF_NAME" "${files[@]}" --clobber
+          else
+            gh release create "$GITHUB_REF_NAME" "${files[@]}" \
+              --title "Projekt Exile Overlay $GITHUB_REF_NAME" \
+              --notes "Instalator dla Windows. Windows może pokazać ostrzeżenie SmartScreen — kliknij „Więcej informacji”, a potem „Uruchom mimo to”. Instrukcja: README."
+          fi
+          gh release view "$GITHUB_REF_NAME" --json assets -q '.assets[].name'
