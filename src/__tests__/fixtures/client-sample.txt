@@ -1,0 +1,14 @@
+2026/11/20 19:01:55 98234511 2caa1679 [INFO Client 8812] [ENGINE] Init
+2026/11/20 19:01:58 98237002 cff94598 [DEBUG Client 8812] Generating level 1 area "G1_town" with seed 1
+2026/11/20 19:01:59 98238114 2caa1679 [INFO Client 8812] [SCENE] Set Source [(null)]
+2026/11/20 19:01:59 98238117 2caa1679 [INFO Client 8812] [SCENE] Set Source [Clearfell Encampment]
+2026/11/20 19:02:00 98238900 b5f5e9d6 [INFO Client 8812] : You have entered Clearfell Encampment.
+2026/11/20 19:02:05 98244001 b5f5e9d6 [INFO Client 8812] ExileOne: anyone for Count Geonor?
+2026/11/20 19:02:09 98248301 b5f5e9d6 [INFO Client 8812] #RandomGuy: WTS chaos
+2026/11/20 19:02:10 98249301 b5f5e9d6 [INFO Client 8812] @From Trader_X: Hi, I would like to buy your item
+2026/11/20 19:02:12 98251302 b5f5e9d6 [INFO Client 8812] OtherPlayer: me
+2026/11/20 19:02:15 98254302 b5f5e9d6 [INFO Client 8812] <GLD> ExileOne: inviting
+2026/11/20 19:02:16 98255302 b5f5e9d6 [INFO Client 8812] : OtherPlayer has joined the area.
+2026/11/20 19:02:30 98269112 cff94598 [DEBUG Client 8812] Generating level 15 area "G1_15" with seed 2964217843
+2026/11/20 19:02:31 98270022 2caa1679 [INFO Client 8812] [SCENE] Set Source [The Grim Tangle]
+2026/11/20 19:02:31 98270100 b5f5e9d6 [INFO Client 8812] : You have entered The Grim Tangle.
