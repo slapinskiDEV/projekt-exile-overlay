@@ -51,6 +51,10 @@ export function OverlayApp() {
     return () => window.removeEventListener('keydown', onKey);
   }, [state?.panelVisible, hide]);
 
+  // Hook przed wcześniejszym `return` — inaczej przy pierwszym stanie React wywraca
+  // nakładkę (różna liczba hooków; tak zepsuło się Alt+H w 0.1.1).
+  const panelDrag = useDraggable(() => void window.overlay.setInteractive(true));
+
   if (!state) return null;
 
   const openContract = (id: string) => setScreen({ kind: 'contract', id });
@@ -97,8 +101,6 @@ export function OverlayApp() {
       <ThreadList state={state} onOpen={(id) => setScreen({ kind: 'thread', id })} onAsk={() => setScreen({ kind: 'ask' })} />
     );
   }
-
-  const panelDrag = useDraggable(() => void window.overlay.setInteractive(true));
 
   return (
     <>
