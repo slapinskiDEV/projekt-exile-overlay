@@ -27,7 +27,8 @@ nsis:
   createDesktopShortcut: true
   createStartMenuShortcut: true
   shortcutName: Projekt Exile Overlay
-  artifactName: Projekt-Exile-Overlay-Setup-${version}.${ext}
+  # Stała nazwa — przycisk w README prowadzi prosto do pliku z najnowszego wydania.
+  artifactName: Projekt-Exile-Overlay-Setup.${ext}
   installerIcon: build/icon.ico
   uninstallerIcon: build/icon.ico
   license: LICENSE
