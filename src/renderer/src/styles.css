@@ -399,6 +399,15 @@ textarea {
   background: var(--bg-2);
 }
 
+.panel-header.draggable {
+  cursor: grab;
+  touch-action: none;
+}
+
+.panel-header.draggable:active {
+  cursor: grabbing;
+}
+
 .panel-header img {
   width: 22px;
   height: 22px;

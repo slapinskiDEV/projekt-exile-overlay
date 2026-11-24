@@ -33,6 +33,8 @@ export interface AppState {
   paired: boolean;
   area: AreaInfo | null;
   nickHint: string | null;
+  /** Postać z ostatniego awansu w logu (nick, klasa, poziom). */
+  character: { name: string; className: string; level: number } | null;
   /** Ustawione, gdy API odrzuca tę wersję (HTTP 426 albo /version). */
   updateRequired: { minVersion: string } | null;
   panelVisible: boolean;
@@ -144,7 +146,7 @@ export interface OverlayBridge extends OverlayApi {
   on<E extends OverlayEventName>(event: E, listener: (payload: OverlayEvents[E]) => void): () => void;
 }
 
-export const SITE_URL = 'https://projektexile.pl';
+export const SITE_URL = 'https://www.projektexile.pl';
 export const PAIRING_URL = `${SITE_URL}/profile/settings#overlay`;
 export const RELEASES_URL = 'https://github.com/slapinskiDEV/projekt-exile-overlay/releases/latest';
 export const GGG_DISCLAIMER =

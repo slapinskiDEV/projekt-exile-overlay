@@ -4,6 +4,7 @@ import { describe, expect, it } from 'vitest';
 import {
   INITIAL_LOG_STATE,
   applyLogLines,
+  currentCharacter,
   parseLogLine,
   splitLines,
   stripLinePrefix,
@@ -108,5 +109,43 @@ describe('splitLines', () => {
     expect(first).toEqual({ lines: ['line one'], rest: 'line tw' });
     const second = splitLines(first.rest, 'o\n');
     expect(second).toEqual({ lines: ['line two'], rest: '' });
+  });
+});
+
+describe('nick i poziom postaci z awansów (0.1.1)', () => {
+  const P = '2026/11/24 19:02:11 123456789 cff94598 [INFO Client 1234] ';
+
+  it('czyta awans postaci', () => {
+    expect(parseLogLine(`${P}: Dawnbringer (Mercenary) is now level 41`)).toEqual({
+      type: 'levelUp',
+      name: 'Dawnbringer',
+      className: 'Mercenary',
+      level: 41,
+    });
+  });
+
+  it('dialog NPC nie jest nickiem gracza', () => {
+    const state = applyLogLines(INITIAL_LOG_STATE, [
+      `${P}Doryani: Ah, the Exile returns.`,
+      `${P}Doryani: The Vaal knew things we have forgotten.`,
+      `${P}: Dawnbringer (Mercenary) is now level 40`,
+      `${P}Doryani: Come, there is more to see.`,
+      `${P}: Dawnbringer (Mercenary) is now level 41`,
+    ]);
+    expect(currentCharacter(state.levelUps)).toEqual({ name: 'Dawnbringer', className: 'Mercenary', level: 41 });
+  });
+
+  it('członek drużyny awansujący raz nie podmienia postaci', () => {
+    const state = applyLogLines(INITIAL_LOG_STATE, [
+      `${P}: Dawnbringer (Mercenary) is now level 40`,
+      `${P}: Dawnbringer (Mercenary) is now level 41`,
+      `${P}: Kolega (Witch) is now level 55`,
+    ]);
+    expect(currentCharacter(state.levelUps)?.name).toBe('Dawnbringer');
+  });
+
+  it('bez awansu w logu nie zgadujemy nicku', () => {
+    const state = applyLogLines(INITIAL_LOG_STATE, [`${P}Doryani: Hello.`]);
+    expect(currentCharacter(state.levelUps)).toBeNull();
   });
 });

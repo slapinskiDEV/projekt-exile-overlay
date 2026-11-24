@@ -24,7 +24,16 @@ import type { ApiFailure, ApiResult } from '@shared/ipc';
  * tokenu w interfejsie. Nie importuje Electrona, więc jest testowany w vitest.
  */
 
-export const DEFAULT_API_URL = 'https://projektexile.pl/api/overlay';
+// Kanoniczny adres serwisu to `www` — `projektexile.pl` odpowiada przekierowaniem 308,
+// a `fetch` przy przekierowaniu na inny host usuwa nagłówek `Authorization`. W 0.1.0
+// skutkowało to „Połącz overlay z kontem” przy każdym zapisie mimo sparowania.
+export const DEFAULT_API_URL = 'https://www.projektexile.pl/api/overlay';
+
+/** Przekierowanie w obrębie projektexile.pl możemy śledzić z tokenem. */
+export function isTrustedRedirect(from: URL, to: URL): boolean {
+  const site = (host: string) => host === 'projektexile.pl' || host.endsWith('.projektexile.pl');
+  return to.protocol === 'https:' && (to.host === from.host || (site(from.hostname) && site(to.hostname)));
+}
 
 export interface ApiClientOptions {
   baseUrl: string;
@@ -64,12 +73,23 @@ export function createApiClient(options: ApiClientOptions) {
 
     let response: Response;
     try {
-      response = await doFetch(url, {
-        method,
-        headers,
-        body: init.body === undefined ? undefined : JSON.stringify(init.body),
-        signal: AbortSignal.timeout(options.timeoutMs ?? 15_000),
-      });
+      // Przekierowania śledzimy sami (najwyżej 3), żeby nie zgubić tokenu i nie wysłać
+      // go poza projektexile.pl.
+      let target = url;
+      for (let hop = 0; ; hop++) {
+        response = await doFetch(target, {
+          method,
+          headers,
+          body: init.body === undefined ? undefined : JSON.stringify(init.body),
+          signal: AbortSignal.timeout(options.timeoutMs ?? 15_000),
+          redirect: 'manual',
+        });
+        const location = response.headers?.get?.('location');
+        if (![301, 302, 307, 308].includes(response.status) || !location || hop >= 3) break;
+        const next = new URL(location, target);
+        if (!isTrustedRedirect(target, next)) break;
+        target = next;
+      }
     } catch {
       return failure({ status: 0, error: 'network', message: 'Brak połączenia z serwerem. Spróbuj za chwilę.' });
     }

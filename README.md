@@ -82,6 +82,9 @@ Overlay sam sprawdza aktualizacje przy starcie i pyta, czy zainstalować nową w
 Skróty zmienisz w ustawieniach (ikona w zasobniku systemowym → Ustawienia).
 **Jedno naciśnięcie to najwyżej jedna akcja w grze.**
 
+Panel przesuniesz, chwytając go za pasek z logo — zapamięta miejsce. Dwuklik na pasku
+przywraca domyślną pozycję.
+
 ## Wymagania
 
 - Windows 10 lub 11 (64-bit).
@@ -95,7 +98,8 @@ Skróty zmienisz w ustawieniach (ikona w zasobniku systemowym → Ustawienia).
 **Czyta:**
 
 - **Plik logu gry `Client.txt`** — tylko nazwę i poziom obszaru, w którym jesteś, oraz
-  podpowiedź nicku (nick zawsze potwierdzasz sam).
+  nick i poziom postaci z linii, którą gra zapisuje przy awansie (nick zawsze
+  potwierdzasz sam).
 - **Schowek** — wyłącznie po naciśnięciu **Alt+C**: overlay wysyła wtedy do gry **jedno**
   Ctrl+C i **raz** odczytuje schowek.
 
@@ -194,6 +198,7 @@ Wybory podjęte przy MVP (do zmiany, jeśli się nie sprawdzą):
   logu polskiego klienta. Wzorce są w tablicach w `src/shared/log-parser.ts`.
 - **Autowykrycie `Client.txt`:** domyślne ścieżki Steama (z bibliotekami z
   `libraryfolders.vdf`) i wersji samodzielnej GGG w `Program Files (x86)` / `Program Files`.
+- **Nick i poziom postaci** z linii awansu „Nick (Klasa) is now level N” (od 0.1.1; wcześniej z czatu lokalnego, co łapało dialogi NPC, np. „Doryani”). Na starcie czytane są ostatnie 2 MB logu. Polskie warianty linii awansu to przypuszczenia.
 - **Nick** nie jest wysyłany automatycznie. W formularzu prośby jest zaznaczone pole
   „Dopisz nick postaci”, które dokleja `(nick w grze: X)` do zdania — gracz widzi to i może
   odznaczyć.

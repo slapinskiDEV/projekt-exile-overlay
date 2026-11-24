@@ -80,3 +80,46 @@ describe('api client', () => {
     expect(JSON.parse(String(fetch.mock.calls[0]![1]!.body))).toEqual({ helperIds: ['a', 'b'] });
   });
 });
+
+describe('przekierowania (0.1.1)', () => {
+  it('domyślny adres to www — bez przekierowania gubiącego token', async () => {
+    const { DEFAULT_API_URL } = await import('../main/api');
+    expect(DEFAULT_API_URL).toBe('https://www.projektexile.pl/api/overlay');
+  });
+
+  it('przy przekierowaniu w obrębie projektexile.pl token zostaje', async () => {
+    const { createApiClient } = await import('../main/api');
+    const calls: Array<{ url: string; auth: string | undefined }> = [];
+    const fakeFetch = (async (input: URL | string, init?: RequestInit) => {
+      const url = String(input);
+      calls.push({ url, auth: (init?.headers as Record<string, string>)?.Authorization });
+      if (url.startsWith('https://projektexile.pl/')) {
+        return new Response(null, {
+          status: 308,
+          headers: { location: url.replace('https://projektexile.pl/', 'https://www.projektexile.pl/') },
+        });
+      }
+      return new Response(JSON.stringify({ id: 'c1' }), { status: 201 });
+    }) as typeof fetch;
+
+    const api = createApiClient({
+      baseUrl: 'https://projektexile.pl/api/overlay',
+      version: '0.1.1',
+      getToken: () => 'pex_token',
+      fetch: fakeFetch,
+    });
+    const result = await api.createContract({ categoryId: 'boss_carry', text: 'Pomocy z bossem' });
+    expect(result.ok).toBe(true);
+    expect(calls).toHaveLength(2);
+    expect(calls[1]).toEqual({ url: 'https://www.projektexile.pl/api/overlay/contracts', auth: 'Bearer pex_token' });
+  });
+
+  it('nie wysyła tokenu poza projektexile.pl', async () => {
+    const { isTrustedRedirect } = await import('../main/api');
+    const from = new URL('https://www.projektexile.pl/api/overlay/me');
+    expect(isTrustedRedirect(from, new URL('https://projektexile.pl/x'))).toBe(true);
+    expect(isTrustedRedirect(from, new URL('https://evil.example/x'))).toBe(false);
+    expect(isTrustedRedirect(from, new URL('http://www.projektexile.pl/x'))).toBe(false);
+    expect(isTrustedRedirect(from, new URL('https://projektexile.pl.evil.example/x'))).toBe(false);
+  });
+});

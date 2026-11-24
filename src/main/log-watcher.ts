@@ -4,8 +4,9 @@ import {
   INITIAL_LOG_STATE,
   applyLogLines,
   splitLines,
-  suggestNick,
+  currentCharacter,
   type AreaInfo,
+  type CharacterInfo,
   type LogState,
 } from '@shared/log-parser';
 
@@ -20,6 +21,7 @@ import {
 export interface LogSnapshot {
   area: AreaInfo | null;
   nickHint: string | null;
+  character: CharacterInfo | null;
 }
 
 export interface LogWatcherOptions {
@@ -51,12 +53,14 @@ export class LogWatcher extends EventEmitter<{
   ) {
     super();
     this.intervalMs = options.intervalMs ?? 500;
-    this.tailBytes = options.tailBytes ?? 256 * 1024;
+    // 2 MB — żeby trafić na ostatni awans postaci, a nie tylko na bieżący obszar.
+    this.tailBytes = options.tailBytes ?? 2 * 1024 * 1024;
     this.maxChunk = options.maxChunk ?? 1024 * 1024;
   }
 
   snapshot(): LogSnapshot {
-    return { area: this.state.area, nickHint: suggestNick(this.state.recentSpeakers) };
+    const character = currentCharacter(this.state.levelUps);
+    return { area: this.state.area, nickHint: character?.name ?? null, character };
   }
 
   start(): void {
@@ -144,6 +148,7 @@ export class LogWatcher extends EventEmitter<{
       const after = this.snapshot();
       if (
         before.nickHint !== after.nickHint ||
+        before.character?.level !== after.character?.level ||
         before.area?.name !== after.area?.name ||
         before.area?.level !== after.area?.level
       ) {

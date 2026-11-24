@@ -13,7 +13,8 @@
 export type LogEvent =
   | { type: 'areaLevel'; level: number; areaCode: string | null }
   | { type: 'areaEntered'; name: string }
-  | { type: 'chat'; speaker: string; message: string };
+  | { type: 'chat'; speaker: string; message: string }
+  | { type: 'levelUp'; name: string; className: string; level: number };
 
 /** Prefiks linii: data, czas, licznik, id, `[POZIOM Client PID]`. Treść w grupie 1. */
 const LINE_PREFIX =
@@ -44,6 +45,20 @@ export const AREA_ENTERED_PATTERNS: RegExp[] = [
   /^: Wszedłeś do (.+?)\.?$/, // przypuszczenie
   /^: Weszłaś do (.+?)\.?$/, // przypuszczenie
   /^: Wchodzisz do (.+?)\.?$/, // przypuszczenie
+];
+
+/**
+ * Awans postaci: „: Nick (Mercenary) is now level 41”. To najpewniejsze źródło nicku
+ * i poziomu postaci — dotyczy gracza (albo członka drużyny), nigdy NPC. Do 0.1.0 nick
+ * zgadywaliśmy z czatu lokalnego, ale dialogi NPC (np. „Doryani: …”) mają w logu ten
+ * sam format i to one wygrywały.
+ *
+ * Polskie warianty to **przypuszczenia** — do potwierdzenia na prawdziwym logu.
+ */
+export const LEVEL_UP_PATTERNS: RegExp[] = [
+  /^: (\S+) \(([^)]+)\) is now level (\d{1,3})$/,
+  /^: (\S+) \(([^)]+)\) (?:osiąga|osiągnął|osiągnęła|osiągnął\(-ęła\)) poziom (\d{1,3})\.?$/, // przypuszczenie
+  /^: (\S+) \(([^)]+)\) (?:jest teraz na|awansuje na) poziom(?:ie)? (\d{1,3})\.?$/, // przypuszczenie
 ];
 
 /** Nazwy scen, które nie są obszarem (ekran ładowania, menu). */
@@ -84,6 +99,15 @@ export function parseLogLine(line: string): LogEvent | null {
     }
   }
 
+  for (const pattern of LEVEL_UP_PATTERNS) {
+    const match = pattern.exec(body);
+    if (match) {
+      const level = Number.parseInt(match[3] ?? '', 10);
+      if (!Number.isInteger(level) || level < 1 || level > 100) return null;
+      return { type: 'levelUp', name: match[1]!, className: match[2]!, level };
+    }
+  }
+
   // Komunikaty systemowe zaczynają się od „: ”, kanały od znaku kanału.
   if (body.startsWith(':') || /^[#$%&@]/.test(body)) return null;
   const chat = LOCAL_CHAT.exec(body);
@@ -103,12 +127,21 @@ export interface LogState {
   pendingLevel: number | null;
   /** Ostatni autorzy wiadomości na czacie lokalnym (najnowsi na końcu). */
   recentSpeakers: string[];
+  /** Awanse z logu (najnowsze na końcu) — źródło nicku i poziomu postaci. */
+  levelUps: Array<{ name: string; className: string; level: number }>;
+}
+
+export interface CharacterInfo {
+  name: string;
+  className: string;
+  level: number;
 }
 
 export const INITIAL_LOG_STATE: LogState = {
   area: null,
   pendingLevel: null,
   recentSpeakers: [],
+  levelUps: [],
 };
 
 const MAX_SPEAKERS = 200;
@@ -126,6 +159,11 @@ export function applyLogEvent(state: LogState, event: LogEvent): LogState {
         area: { name: event.name, level: state.pendingLevel },
         pendingLevel: null,
       };
+    }
+    case 'levelUp': {
+      const levelUps = [...state.levelUps, { name: event.name, className: event.className, level: event.level }];
+      if (levelUps.length > 50) levelUps.splice(0, levelUps.length - 50);
+      return { ...state, levelUps };
     }
     case 'chat': {
       const recentSpeakers = [...state.recentSpeakers, event.speaker];
@@ -145,7 +183,29 @@ export function applyLogLines(state: LogState, lines: string[]): LogState {
 }
 
 /**
- * Podpowiedź nicku: najczęstszy autor na czacie lokalnym. Gracz zwykle pisze sam do
+ * Postać gracza z awansów w logu: najczęściej awansująca (członek drużyny awansuje
+ * rzadziej niż my), przy remisie ostatnia. Poziom — z jej ostatniego awansu.
+ */
+export function currentCharacter(levelUps: LogState['levelUps']): CharacterInfo | null {
+  const counts = new Map<string, number>();
+  let best: string | null = null;
+  let bestCount = 0;
+  for (const entry of levelUps) {
+    const count = (counts.get(entry.name) ?? 0) + 1;
+    counts.set(entry.name, count);
+    if (count >= bestCount) {
+      best = entry.name;
+      bestCount = count;
+    }
+  }
+  if (!best) return null;
+  const last = [...levelUps].reverse().find((entry) => entry.name === best)!;
+  return { name: last.name, className: last.className, level: last.level };
+}
+
+/**
+ * Stara podpowiedź z czatu lokalnego — **nie używana do nicku** od 0.1.1 (łapała NPC).
+ * Najczęstszy autor na czacie lokalnym. Gracz zwykle pisze sam do
  * siebie częściej niż ktokolwiek inny w tej samej instancji — to tylko podpowiedź,
  * gracz ją potwierdza albo poprawia.
  */

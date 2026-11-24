@@ -21,7 +21,7 @@ export function MyContracts({ state, onOpen }: { state: AppState; onOpen: (id: s
             {data.profile.displayName ?? 'Gracz'}
           </span>
           <span className="row">
-            <span className="badge">poz. {data.profile.level}</span>
+            <span className="badge" title="Poziom konta w serwisie Projekt Exile">poziom konta {data.profile.level}</span>
             <span className="badge gold">{data.profile.reputation} RP</span>
           </span>
         </div>

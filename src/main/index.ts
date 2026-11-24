@@ -58,6 +58,7 @@ const keySender = createKeySender();
 const runtime: Omit<AppState, 'version' | 'settings' | 'paired'> = {
   area: null,
   nickHint: null,
+  character: null,
   updateRequired: null,
   panelVisible: false,
   log: { status: 'idle', path: null },
@@ -196,6 +197,7 @@ function startWatcher() {
   watcher.on('change', (snapshot) => {
     runtime.area = snapshot.area;
     runtime.nickHint = snapshot.nickHint;
+    runtime.character = snapshot.character;
     broadcastState();
   });
   watcher.on('status', (status) => {

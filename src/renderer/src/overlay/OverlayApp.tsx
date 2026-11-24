@@ -12,6 +12,7 @@ import { ThreadDetail } from './ThreadDetail';
 import { AskForm } from './AskForm';
 import { Toasts } from './Toasts';
 import { Interactive } from '../components/Interactive';
+import { useDraggable } from '../lib/use-draggable';
 
 export type Tab = 'requests' | 'mine' | 'questions';
 
@@ -97,6 +98,8 @@ export function OverlayApp() {
     );
   }
 
+  const panelDrag = useDraggable(() => void window.overlay.setInteractive(true));
+
   return (
     <>
       <Toasts
@@ -107,8 +110,12 @@ export function OverlayApp() {
         }}
       />
       {state.panelVisible && (
-        <Interactive className="panel">
-          <div className="panel-header">
+        <Interactive className="panel" style={panelDrag.style}>
+          <div
+            className="panel-header draggable"
+            title="Przeciągnij, żeby przesunąć panel · dwuklik przywraca miejsce"
+            {...panelDrag.handlers}
+          >
             <img src={logo} alt="" />
             <span className="title">Projekt Exile</span>
             <span className="badge">{state.settings.league ?? 'bez ligi'}</span>
@@ -121,6 +128,7 @@ export function OverlayApp() {
           </div>
           <div className="panel-area">
             {where ? `Jesteś: ${where}` : 'Obszar nieznany — wskaż Client.txt w ustawieniach.'}
+            {state.character && ` · ${state.character.name}, ${state.character.level} lvl`}
             {!state.paired && ' · tryb podglądu'}
           </div>
           {screen.kind === 'tab' && !state.updateRequired && (

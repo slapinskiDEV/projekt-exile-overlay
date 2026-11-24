@@ -26,8 +26,8 @@ export function timeAgo(iso: string, now = Date.now()): string {
 
 export function areaLabel(area: string | null, level: number | null): string | null {
   if (!area && !level) return null;
-  if (!area) return `poziom ${level}`;
-  return level ? `${area} (poz. ${level})` : area;
+  if (!area) return `poziom obszaru ${level}`;
+  return level ? `${area} (poziom obszaru ${level})` : area;
 }
 
 export const CONTRACT_URL = (id: string) => `https://projektexile.pl/contracts/${id}`;

@@ -96,7 +96,7 @@ export function ClientPathField({ state, autoDetect }: { state: AppState; autoDe
       )}
       {path && state.log.path === path && state.log.status === 'watching' && (
         <p className="success small">
-          Plik działa{state.area ? ` — ostatni obszar: ${state.area.name}${state.area.level ? ` (poz. ${state.area.level})` : ''}` : ''}.
+          Plik działa{state.area ? ` — ostatni obszar: ${state.area.name}${state.area.level ? ` (poziom obszaru ${state.area.level})` : ''}` : ''}.
         </p>
       )}
       {found && found.length === 0 && (
@@ -146,7 +146,12 @@ export function NickField({ state, value, onChange }: { state: AppState; value: 
           </button>
         </p>
       )}
-      {!hint && <p className="small muted">Podpowiedź pojawi się, gdy napiszesz coś na czacie lokalnym w grze.</p>}
+      {!hint && (
+        <p className="small muted">
+          Podpowiedź pojawi się po najbliższym awansie postaci (gra zapisuje go w logu). Możesz też wpisać nick
+          ręcznie.
+        </p>
+      )}
     </div>
   );
 }
