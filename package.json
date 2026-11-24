@@ -1,0 +1,48 @@
+{
+  "name": "projekt-exile-overlay",
+  "productName": "Projekt Exile Overlay",
+  "version": "0.1.0",
+  "description": "Overlay Projekt Exile: prośby o pomoc i pytania do społeczności bez wychodzenia z gry.",
+  "author": "Projekt Exile",
+  "license": "MIT",
+  "homepage": "https://projektexile.pl",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/slapinskiDEV/projekt-exile-overlay.git"
+  },
+  "private": true,
+  "main": "out/main/index.js",
+  "scripts": {
+    "dev": "electron-vite dev",
+    "build": "electron-vite build",
+    "preview": "electron-vite preview",
+    "typecheck": "tsc --noEmit -p tsconfig.node.json && tsc --noEmit -p tsconfig.web.json",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "dist": "npm run build && electron-builder --win --x64 --publish never",
+    "release": "npm run build && electron-builder --win --x64 --publish always",
+    "sound": "node scripts/generate-sound.mjs"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.119.2",
+    "electron-updater": "^6.8.11"
+  },
+  "devDependencies": {
+    "@fontsource/jersey-10": "^5.3.0",
+    "@fontsource/vt323": "^5.3.0",
+    "@testing-library/react": "^16.3.3",
+    "@types/node": "^24.19.2",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "@vitejs/plugin-react": "^6.3.0",
+    "electron": "^45.4.1",
+    "electron-builder": "^26.18.0",
+    "electron-vite": "^6.0.0",
+    "jsdom": "^31.0.1",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1",
+    "typescript": "~5.9.3",
+    "vite": "^8.3.8",
+    "vitest": "^5.1.1"
+  }
+}

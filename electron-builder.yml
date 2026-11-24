@@ -1,0 +1,38 @@
+appId: pl.projektexile.overlay
+productName: Projekt Exile Overlay
+copyright: Copyright © 2026 Projekt Exile
+directories:
+  output: dist
+  buildResources: build
+files:
+  - out/**/*
+  - package.json
+extraResources:
+  - from: resources
+    to: resources
+    filter:
+      - '**/*'
+win:
+  target:
+    - target: nsis
+      arch:
+        - x64
+  icon: build/icon.ico
+  # Bez podpisu cyfrowego na start (spec 0161) — SmartScreen pokaże ostrzeżenie.
+  signAndEditExecutable: true
+nsis:
+  oneClick: false
+  perMachine: false
+  allowToChangeInstallationDirectory: true
+  createDesktopShortcut: true
+  createStartMenuShortcut: true
+  shortcutName: Projekt Exile Overlay
+  artifactName: Projekt-Exile-Overlay-Setup-${version}.${ext}
+  installerIcon: build/icon.ico
+  uninstallerIcon: build/icon.ico
+  license: LICENSE
+publish:
+  provider: github
+  owner: slapinskiDEV
+  repo: projekt-exile-overlay
+  releaseType: release
