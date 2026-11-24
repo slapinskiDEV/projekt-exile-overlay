@@ -264,7 +264,7 @@ const handlers: OverlayApi = {
     }
     const pathChanged = 'clientTxtPath' in allowed && allowed.clientTxtPath !== store.get().clientTxtPath;
     store.update(allowed);
-    if (pathChanged && store.get().setupDone) startWatcher();
+    if (pathChanged && store.get().privacyAccepted) startWatcher();
     broadcastState();
     return state();
   },
