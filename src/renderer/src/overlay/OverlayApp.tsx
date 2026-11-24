@@ -51,6 +51,20 @@ export function OverlayApp() {
     return () => window.removeEventListener('keydown', onKey);
   }, [state?.panelVisible, hide]);
 
+  // Do dziennika: gdzie panel faktycznie się narysował (diagnoza „skrót nic nie pokazuje”).
+  const panelVisible = state?.panelVisible ?? false;
+  useEffect(() => {
+    if (!panelVisible) return;
+    const frame = requestAnimationFrame(() => {
+      const rect = document.querySelector('.panel')?.getBoundingClientRect();
+      console.info(
+        '[pe] panel',
+        JSON.stringify({ rect: rect ? { x: rect.x, y: rect.y, w: rect.width, h: rect.height } : null, viewport: [innerWidth, innerHeight] }),
+      );
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [panelVisible]);
+
   // Hook przed wcześniejszym `return` — inaczej przy pierwszym stanie React wywraca
   // nakładkę (różna liczba hooków; tak zepsuło się Alt+H w 0.1.1).
   const panelDrag = useDraggable(() => void window.overlay.setInteractive(true));

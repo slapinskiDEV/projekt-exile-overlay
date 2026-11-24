@@ -35,7 +35,10 @@ export function clampPosition(
 }
 
 export function useDraggable(onDragStart?: () => void) {
-  const [position, setPosition] = useState<PanelPosition | null>(() => load());
+  const [position, setPosition] = useState<PanelPosition | null>(() => {
+    const saved = load();
+    return saved ? clampPosition(saved, { width: 440 }, { width: innerWidth, height: innerHeight }) : null;
+  });
   const drag = useRef<{ dx: number; dy: number; width: number } | null>(null);
 
   useEffect(() => {
@@ -76,7 +79,9 @@ export function useDraggable(onDragStart?: () => void) {
   const onPointerUp = useCallback((event: PointerEvent<HTMLElement>) => {
     if (!drag.current) return;
     drag.current = null;
-    event.currentTarget.releasePointerCapture?.(event.pointerId);
+    if (event.currentTarget.hasPointerCapture?.(event.pointerId)) {
+      event.currentTarget.releasePointerCapture(event.pointerId);
+    }
     setPosition((pos) => {
       try {
         if (pos) localStorage.setItem(STORAGE_KEY, JSON.stringify(pos));
@@ -98,5 +103,8 @@ export function useDraggable(onDragStart?: () => void) {
 
   const style = position ? { left: position.x, top: position.y, right: 'auto' as const } : undefined;
 
-  return { style, handlers: { onPointerDown, onPointerMove, onPointerUp, onDoubleClick: reset } };
+  return {
+    style,
+    handlers: { onPointerDown, onPointerMove, onPointerUp, onLostPointerCapture: onPointerUp, onDoubleClick: reset },
+  };
 }

@@ -1,4 +1,5 @@
 import { globalShortcut } from 'electron';
+import { diag } from './diag-log';
 import { normalizeAccelerator, type ShortcutAction, type ShortcutMap } from '@shared/shortcuts';
 
 /**
@@ -37,6 +38,7 @@ export class ShortcutManager {
   private fire(action: ShortcutAction) {
     const now = Date.now();
     if (now - (this.last.get(action) ?? 0) < this.cooldownMs) return;
+    diag('shortcut', { action });
     this.last.set(action, now);
     this.handlers[action]();
   }

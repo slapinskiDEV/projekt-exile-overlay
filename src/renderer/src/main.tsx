@@ -4,6 +4,7 @@ import '@fontsource/jersey-10';
 import '@fontsource/vt323';
 import './styles.css';
 import { OverlayApp } from './overlay/OverlayApp';
+import { ErrorBoundary } from './components/ErrorBoundary';
 import { SetupApp } from './setup/SetupApp';
 import { SettingsApp } from './settings/SettingsApp';
 
@@ -17,6 +18,10 @@ function parseHash(): { view: string; params: URLSearchParams } {
 const { view, params } = parseHash();
 document.documentElement.dataset.view = view;
 
+// Błędy poza Reactem (np. w obsłudze zdarzeń) też trafiają do dziennika diagnostycznego.
+window.addEventListener('error', (event) => console.error('[pe] window error', event.message));
+window.addEventListener('unhandledrejection', (event) => console.error('[pe] unhandled rejection', String(event.reason)));
+
 const root = createRoot(document.getElementById('root')!);
 root.render(
   <StrictMode>
@@ -25,7 +30,9 @@ root.render(
     ) : view === 'settings' ? (
       <SettingsApp />
     ) : (
-      <OverlayApp />
+      <ErrorBoundary>
+        <OverlayApp />
+      </ErrorBoundary>
     )}
   </StrictMode>,
 );

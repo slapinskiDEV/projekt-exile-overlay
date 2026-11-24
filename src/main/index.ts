@@ -7,13 +7,15 @@ import {
   ipcMain,
   Menu,
   nativeImage,
+  Notification,
   safeStorage,
+  screen,
   shell,
   Tray,
 } from 'electron';
 import { parseItemText } from '@shared/poe-item';
 import { isBelowMinVersion } from '@shared/version';
-import { validateShortcuts, type ShortcutAction } from '@shared/shortcuts';
+import { SHORTCUT_LABELS, validateShortcuts, type ShortcutAction } from '@shared/shortcuts';
 import { toPublicSettings, type PublicSettings } from '@shared/settings';
 import {
   OVERLAY_API_METHODS,
@@ -33,6 +35,7 @@ import { RealtimeNotifications } from './realtime';
 import { SettingsStore } from './settings-store';
 import { ShortcutManager } from './shortcuts';
 import { checkForUpdates } from './updater';
+import { diag, diagLogPath, initDiagLog } from './diag-log';
 import { createMainWindow, createOverlayWindow, iconPath, loadView } from './windows';
 
 if (!app.requestSingleInstanceLock()) {
@@ -120,14 +123,24 @@ function setPanelVisible(visible: boolean) {
   runtime.panelVisible = visible;
   if (visible) {
     // Kliknięcia poza panelem dalej trafiają do gry — okno łapie je tylko nad
-    // panelem (setInteractive z interfejsu).
+    // panelem (setInteractive z interfejsu). Bez focus(): zabranie aktywności grze
+    // działało jak Alt+Tab (gra w pełnym ekranie się zwijała). Klawiaturę panel
+    // dostaje dopiero, gdy gracz w niego kliknie.
     overlay.setFocusable(true);
+    overlay.setAlwaysOnTop(true, 'screen-saver');
     overlay.showInactive();
-    overlay.focus();
+    overlay.moveTop();
+    diag('panel:show', {
+      bounds: overlay.getBounds(),
+      visible: overlay.isVisible(),
+      cursorDisplay: screen.getDisplayNearestPoint(screen.getCursorScreenPoint()).id,
+      primaryDisplay: screen.getPrimaryDisplay().id,
+    });
   } else {
     overlay.setIgnoreMouseEvents(true, { forward: true });
     overlay.blur();
     overlay.setFocusable(false);
+    diag('panel:hide');
   }
   broadcastState();
 }
@@ -182,6 +195,25 @@ async function askItem() {
 
 function applyShortcuts() {
   runtime.shortcutErrors = store.get().setupDone ? shortcuts.apply(store.get().shortcuts) : {};
+  diag('shortcuts:apply', { shortcuts: store.get().shortcuts, errors: runtime.shortcutErrors });
+}
+
+/**
+ * Skrót zajęty przez inną aplikację (np. CapCut bierze Alt+H) — bez tego gracz widzi
+ * tylko, że nakładka „nie działa”. Mówimy wprost, który skrót i gdzie go zmienić.
+ */
+function warnAboutTakenShortcuts() {
+  const taken = (Object.keys(runtime.shortcutErrors) as ShortcutAction[]).map(
+    (action) => `${store.get().shortcuts[action]} (${SHORTCUT_LABELS[action]})`,
+  );
+  if (taken.length === 0 || !Notification.isSupported()) return;
+  const notification = new Notification({
+    title: 'Projekt Exile Overlay: skrót zajęty',
+    body: `${taken.join(', ')} — używa go inna aplikacja. Kliknij, żeby ustawić inny skrót.`,
+    icon: iconPath(),
+  });
+  notification.on('click', () => openMainWindow('settings'));
+  notification.show();
 }
 
 // --- log -------------------------------------------------------------------------------
@@ -419,6 +451,29 @@ function registerIpc() {
 
 // --- zasobnik ----------------------------------------------------------------------------
 
+/** Ręczne przeładowanie okna nakładki (menu zasobnika) — panel startuje od listy. */
+function reloadOverlay() {
+  if (!overlay || overlay.isDestroyed()) {
+    overlay = createOverlayWindow();
+    watchOverlayWindow(overlay);
+    overlay.on('closed', () => {
+      overlay = null;
+    });
+  } else {
+    // „Wyczyść i zacznij od nowa”: cache okna i zapamiętana pozycja panelu.
+    setPanelVisible(false);
+    const win = overlay;
+    void win.webContents
+      .executeJavaScript("try { localStorage.removeItem('pe.panelPosition') } catch {}")
+      .catch(() => undefined)
+      .then(() => win.webContents.session.clearCache())
+      .finally(() => {
+        if (!win.isDestroyed()) win.webContents.reload();
+      });
+  }
+  diag('overlay:reload');
+}
+
 function createTray() {
   const image = nativeImage.createFromPath(iconPath('tray.png'));
   tray = new Tray(image.isEmpty() ? nativeImage.createFromPath(iconPath()) : image);
@@ -426,8 +481,16 @@ function createTray() {
   tray.setContextMenu(
     Menu.buildFromTemplate([
       { label: 'Pokaż / ukryj panel', click: () => shortcutHandlers.togglePanel() },
+      { label: 'Przeładuj nakładkę', click: () => reloadOverlay() },
       { label: 'Ustawienia', click: () => openMainWindow(store.get().setupDone ? 'settings' : 'setup') },
       { label: 'Sprawdź aktualizacje', click: () => void checkForUpdates(true) },
+      {
+        label: 'Otwórz dziennik diagnostyczny',
+        click: () => {
+          const path = diagLogPath();
+          if (path) shell.showItemInFolder(path);
+        },
+      },
       { type: 'separator' },
       { label: 'Zamknij', click: () => app.quit() },
     ]),
@@ -446,7 +509,32 @@ async function checkVersion() {
   }
 }
 
+/** Błędy okna nakładki trafiają do dziennika; padnięte okno ładuje się od nowa. */
+function watchOverlayWindow(win: BrowserWindow) {
+  win.webContents.on('console-message', (event) => {
+    if (event.level === 'error' || event.level === 'warning' || event.message.startsWith('[pe]')) {
+      diag(`renderer:${event.level}`, { message: event.message, source: event.sourceId, line: event.lineNumber });
+    }
+  });
+  win.webContents.on('did-fail-load', (_e, code, description) => diag('renderer:fail-load', { code, description }));
+  win.webContents.on('render-process-gone', (_e, details) => {
+    diag('renderer:gone', details);
+    if (details.reason !== 'clean-exit' && !win.isDestroyed()) {
+      runtime.panelVisible = false;
+      win.reload();
+    }
+  });
+  win.on('unresponsive', () => diag('renderer:unresponsive'));
+}
+
 async function start() {
+  initDiagLog(join(app.getPath('userData'), 'overlay.log'));
+  diag('start', {
+    version: VERSION,
+    platform: process.platform,
+    displays: screen.getAllDisplays().map((d) => ({ id: d.id, bounds: d.bounds, scale: d.scaleFactor })),
+    primary: screen.getPrimaryDisplay().id,
+  });
   store = new SettingsStore(join(app.getPath('userData'), 'settings.json'), {
     available: () => safeStorage.isEncryptionAvailable(),
     encrypt: (plain) => safeStorage.encryptString(plain).toString('base64'),
@@ -457,6 +545,7 @@ async function start() {
   registerIpc();
   createTray();
   overlay = createOverlayWindow();
+  watchOverlayWindow(overlay);
   overlay.on('closed', () => {
     overlay = null;
   });
@@ -467,6 +556,7 @@ async function start() {
 
   if (store.get().setupDone) {
     applyShortcuts();
+    warnAboutTakenShortcuts();
     startWatcher();
     startNotifications();
   } else {

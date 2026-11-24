@@ -82,6 +82,21 @@ Overlay sam sprawdza aktualizacje przy starcie i pyta, czy zainstalować nową w
 Skróty zmienisz w ustawieniach (ikona w zasobniku systemowym → Ustawienia).
 **Jedno naciśnięcie to najwyżej jedna akcja w grze.**
 
+> [!TIP]
+> Skrót nic nie robi albo otwiera inny program (np. **CapCut zajmuje Alt+H**)? Ten sam
+> skrót może mieć tylko jedna aplikacja. Ustaw inny w ustawieniach overlaya albo zamknij
+> program, który go zajmuje. Od wersji 0.1.3 overlay sam pokazuje powiadomienie, gdy
+> skrót jest zajęty. Panel otworzysz też z menu ikony w zasobniku: „Pokaż / ukryj panel”.
+
+Panel nie zabiera grze klawiatury przy otwarciu — gra zostaje aktywna. Żeby pisać
+w panelu, kliknij w niego.
+
+**Coś nie działa?** Menu ikony w zasobniku:
+
+- **Przeładuj nakładkę** — czyści pamięć podręczną okna i ustawia panel w domyślnym miejscu.
+- **Otwórz dziennik diagnostyczny** — pokazuje plik `overlay.log` (skróty, monitory,
+  błędy panelu; bez tokenów i treści próśb). Dołącz go do zgłoszenia błędu.
+
 Panel przesuniesz, chwytając go za pasek z logo — zapamięta miejsce. Dwuklik na pasku
 przywraca domyślną pozycję.
 
