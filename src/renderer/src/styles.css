@@ -659,3 +659,42 @@ textarea {
 button {
   user-select: none;
 }
+
+/* --- oferty i zapłata (spec 0192 serwisu) ------------------------------------- */
+
+.badge.payment {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.badge.payment img {
+  width: 16px;
+  height: 16px;
+}
+
+.disclaimer {
+  border: 1px solid rgba(232, 145, 74, 0.5);
+  background: rgba(232, 145, 74, 0.1);
+  padding: 6px 8px;
+  font-size: 12px;
+  line-height: 1.35;
+}
+
+.disclaimer p {
+  margin: 0;
+}
+
+.disclaimer p + p {
+  margin-top: 4px;
+}
+
+.segmented {
+  display: flex;
+  gap: 4px;
+}
+
+.segmented button.active {
+  border-color: var(--gold);
+  color: var(--gold-2);
+}

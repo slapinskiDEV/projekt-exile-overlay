@@ -53,6 +53,8 @@ describe('ContractRow', () => {
     issuer: { id: 'u1', name: 'ExileOne' },
     createdAt: new Date().toISOString(),
     areaRank: 0,
+    kind: 'request',
+    payment: null,
   };
 
   it('shows helpers, RP, area and the same-area badge', () => {

@@ -5,6 +5,8 @@ import type {
   CreateContractRequest,
   CreateThreadRequest,
   CreatedResponse,
+  CurrenciesResponse,
+  ProblemReportRequest,
   LeaguesResponse,
   MeResponse,
   OverlayNotification,
@@ -15,6 +17,16 @@ import type {
 import type { AreaInfo } from './log-parser';
 import type { PublicSettings } from './settings';
 import type { ShortcutAction, ShortcutMap } from './shortcuts';
+
+/** Filtry listy kontraktów. `kind` / `pay` — oferty i zapłata (od 0.2.0). */
+export interface ContractsQuery {
+  league?: string | null;
+  category?: string | null;
+  area?: string | null;
+  areaLevel?: number | null;
+  kind?: 'request' | 'offer' | null;
+  pay?: 'free' | 'paid' | null;
+}
 
 /** Błąd zapytania do API w kształcie, który przechodzi przez IPC. */
 export interface ApiFailure {
@@ -68,13 +80,22 @@ export interface OverlayApi {
 
   leagues(): Promise<ApiResult<LeaguesResponse>>;
   categories(): Promise<ApiResult<CategoriesResponse>>;
-  contracts(query: { league?: string | null; category?: string | null; area?: string | null; areaLevel?: number | null }): Promise<ApiResult<ContractsResponse>>;
+  contracts(query: ContractsQuery): Promise<ApiResult<ContractsResponse>>;
   contract(id: string): Promise<ApiResult<ContractDetailResponse>>;
   createContract(body: CreateContractRequest): Promise<ApiResult<CreatedResponse>>;
   apply(contractId: string, message?: string): Promise<ApiResult<{ id: string | null }>>;
   sendMessage(contractId: string, content: string): Promise<ApiResult<{ ok: true }>>;
   extend(contractId: string): Promise<ApiResult<{ ok: true }>>;
-  close(contractId: string): Promise<ApiResult<{ ok: true }>>;
+  close(contractId: string, reason?: string): Promise<ApiResult<{ ok: true }>>;
+  currencies(game: 'poe1' | 'poe2'): Promise<ApiResult<CurrenciesResponse>>;
+  joinOffer(contractId: string): Promise<ApiResult<{ ok: true }>>;
+  leaveOffer(contractId: string): Promise<ApiResult<{ ok: true }>>;
+  removeFromOffer(contractId: string, userId: string): Promise<ApiResult<{ ok: true }>>;
+  startOffer(contractId: string): Promise<ApiResult<{ ok: true }>>;
+  completeOffer(contractId: string, userIds: string[]): Promise<ApiResult<{ ok: true }>>;
+  confirmOffer(contractId: string): Promise<ApiResult<{ ok: true }>>;
+  relistOffer(contractId: string): Promise<ApiResult<CreatedResponse>>;
+  reportProblem(contractId: string, body: ProblemReportRequest): Promise<ApiResult<{ ok: true }>>;
   finish(contractId: string, helperIds: string[]): Promise<ApiResult<{ ok: true }>>;
   acceptApplication(applicationId: string): Promise<ApiResult<{ ok: true }>>;
   withdrawApplication(applicationId: string): Promise<ApiResult<{ ok: true }>>;
@@ -117,6 +138,15 @@ export const OVERLAY_API_METHODS: OverlayApiMethod[] = [
   'sendMessage',
   'extend',
   'close',
+  'currencies',
+  'joinOffer',
+  'leaveOffer',
+  'removeFromOffer',
+  'startOffer',
+  'completeOffer',
+  'confirmOffer',
+  'relistOffer',
+  'reportProblem',
   'finish',
   'acceptApplication',
   'withdrawApplication',

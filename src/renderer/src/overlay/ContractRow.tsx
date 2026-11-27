@@ -1,5 +1,6 @@
 import type { OverlayContract } from '@shared/api-types';
 import { areaLabel, timeAgo } from '../lib/format';
+import { PaymentChip } from '../components/Payment';
 
 export function ContractRow({
   contract,
@@ -11,10 +12,14 @@ export function ContractRow({
   extra?: string;
 }) {
   const where = areaLabel(contract.area, contract.areaLevel);
+  const offer = contract.kind === 'offer';
   return (
     <button className="list-item" onClick={() => onOpen(contract.id)}>
       <div className="spread">
-        <span className="badge">{contract.categoryLabel}</span>
+        <span className="row">
+          {offer && <span className="badge green">Oferta</span>}
+          <span className="badge">{contract.categoryLabel}</span>
+        </span>
         <span className="row">
           {contract.areaRank === 0 && <span className="badge green">Ten obszar</span>}
           {contract.areaRank === 1 && <span className="badge gold">Twój poziom</span>}
@@ -26,11 +31,17 @@ export function ContractRow({
         <span>{contract.issuer.name ?? 'Gracz'}</span>
         {where && <span>{where}</span>}
         <span>
-          pomocnicy {contract.helpersCount}/{contract.maxHelpers}
+          {offer ? 'miejsca' : 'pomocnicy'} {contract.helpersCount}/{contract.maxHelpers}
         </span>
         <span className="rp">{contract.rpValue} RP</span>
         <span>{timeAgo(contract.createdAt)}</span>
       </div>
+      {contract.payment && (
+        <div className="meta">
+          <PaymentChip payment={contract.payment} />
+          <span>od osoby</span>
+        </div>
+      )}
     </button>
   );
 }

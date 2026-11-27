@@ -32,6 +32,18 @@
  * | POST   | /notifications/read                   | tak   | oznacz jako przeczytane           |
  * | GET    | /realtime                             | tak   | krótkotrwały token do Realtime    |
  * | DELETE | /device                               | tak   | rozłącz to urządzenie             |
+ * | GET    | /currencies?game=                     | nie   | currency do zapłaty (0192)        |
+ * | POST   | /contracts/:id/join                   | tak   | oferta: „Dołącz”                  |
+ * | POST   | /contracts/:id/leave                  | tak   | oferta: „Wyjdź”                   |
+ * | POST   | /contracts/:id/remove                 | tak   | oferta: autor usuwa gracza        |
+ * | POST   | /contracts/:id/start                  | tak   | oferta: „Zaczynamy”               |
+ * | POST   | /contracts/:id/done                   | tak   | oferta: „Wykonane” + obecni       |
+ * | POST   | /contracts/:id/confirm                | tak   | oferta: klient potwierdza         |
+ * | POST   | /contracts/:id/relist                 | tak   | oferta: „Wystaw ponownie”         |
+ * | POST   | /contracts/:id/report                 | tak   | „Zgłoś problem”                   |
+ *
+ * Od overlaya 0.2.0 lista kontraktów zawiera oferty (`kind`, `?kind=`, `?pay=`);
+ * starszy dostaje same prośby. `/contracts/:id/close` przy ofercie przyjmuje `{ reason }`.
  */
 
 export interface OverlayError {
@@ -101,6 +113,15 @@ export interface OverlayContract {
   createdAt: string;
   /** 0 — ten sam obszar, 1 — poziom ±5, 2 — reszta. */
   areaRank: 0 | 1 | 2;
+  /** Prośba albo oferta pomocy (spec 0192). W ofercie `maxHelpers` = liczba miejsc. */
+  kind: 'request' | 'offer';
+  /** Zapłata w grze od osoby — tylko deklaracja; null = darmowy. */
+  payment: {
+    currency: string;
+    amount: number;
+    name: string;
+    iconUrl: string;
+  } | null;
 }
 
 export interface ContractsResponse {
@@ -114,6 +135,8 @@ export interface OverlayApplication {
   status: 'pending' | 'accepted' | 'rejected' | 'withdrawn';
   message: string | null;
   createdAt: string;
+  /** Oferta po „Wykonane”: czeka / potwierdził / zgłosił problem. */
+  offerResult: 'awaiting' | 'confirmed' | 'problem' | null;
 }
 
 export interface OverlayMessage {
@@ -143,6 +166,25 @@ export interface CreateContractRequest {
   areaLevel?: number | null;
   itemText?: string | null;
   contractType?: 'individual' | 'community';
+  /** Oferta pomocy (spec 0192): `slots` 1–5. */
+  kind?: 'request' | 'offer';
+  slots?: number;
+  /** Zapłata od osoby: id currency z `/currencies` i ilość 1–9999. */
+  paymentCurrency?: string | null;
+  paymentAmount?: number | null;
+}
+
+export interface CurrenciesResponse {
+  currencies: Array<{ id: string; name: string; iconUrl: string }>;
+}
+
+export interface OfferDoneRequest {
+  userIds: string[];
+}
+
+export interface ProblemReportRequest {
+  reason: 'no_payment' | 'no_service' | 'other';
+  description: string;
 }
 
 export interface CreatedResponse {

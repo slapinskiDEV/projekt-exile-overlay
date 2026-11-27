@@ -5,6 +5,7 @@ import type {
   CreateContractRequest,
   CreateThreadRequest,
   CreatedResponse,
+  CurrenciesResponse,
   FinishContractRequest,
   LeaguesResponse,
   MeResponse,
@@ -12,12 +13,13 @@ import type {
   OverlayError,
   PairRequest,
   PairResponse,
+  ProblemReportRequest,
   RealtimeResponse,
   ThreadDetailResponse,
   ThreadsResponse,
   VersionResponse,
 } from '@shared/api-types';
-import type { ApiFailure, ApiResult } from '@shared/ipc';
+import type { ApiFailure, ApiResult, ContractsQuery } from '@shared/ipc';
 
 /**
  * Klient API overlaya (`/api/overlay`). Działa w procesie głównym — bez CORS i bez
@@ -126,8 +128,7 @@ export function createApiClient(options: ApiClientOptions) {
     leagues: () => request<LeaguesResponse>('GET', 'leagues', { auth: false }),
     categories: () => request<CategoriesResponse>('GET', 'categories', { auth: false }),
     pair: (body: PairRequest) => request<PairResponse>('POST', 'pair', { body, auth: false }),
-    contracts: (query: { league?: string | null; category?: string | null; area?: string | null; areaLevel?: number | null }) =>
-      request<ContractsResponse>('GET', 'contracts', { query }),
+    contracts: (query: ContractsQuery) => request<ContractsResponse>('GET', 'contracts', { query: { ...query } }),
     contract: (id: string) => request<ContractDetailResponse>('GET', `contracts/${encodeURIComponent(id)}`),
     createContract: (body: CreateContractRequest) => request<CreatedResponse>('POST', 'contracts', { body }),
     apply: (id: string, message?: string) =>
@@ -137,7 +138,21 @@ export function createApiClient(options: ApiClientOptions) {
     sendMessage: (id: string, content: string) =>
       request<{ ok: true }>('POST', `contracts/${encodeURIComponent(id)}/messages`, { body: { content } }),
     extend: (id: string) => request<{ ok: true }>('POST', `contracts/${encodeURIComponent(id)}/extend`, { body: {} }),
-    close: (id: string) => request<{ ok: true }>('POST', `contracts/${encodeURIComponent(id)}/close`, { body: {} }),
+    close: (id: string, reason?: string) =>
+      request<{ ok: true }>('POST', `contracts/${encodeURIComponent(id)}/close`, { body: reason ? { reason } : {} }),
+    // Oferty i zgłoszenia problemu (spec 0192 serwisu)
+    currencies: (game: 'poe1' | 'poe2') => request<CurrenciesResponse>('GET', 'currencies', { query: { game }, auth: false }),
+    joinOffer: (id: string) => request<{ ok: true }>('POST', `contracts/${encodeURIComponent(id)}/join`, { body: {} }),
+    leaveOffer: (id: string) => request<{ ok: true }>('POST', `contracts/${encodeURIComponent(id)}/leave`, { body: {} }),
+    removeFromOffer: (id: string, userId: string) =>
+      request<{ ok: true }>('POST', `contracts/${encodeURIComponent(id)}/remove`, { body: { userId } }),
+    startOffer: (id: string) => request<{ ok: true }>('POST', `contracts/${encodeURIComponent(id)}/start`, { body: {} }),
+    completeOffer: (id: string, userIds: string[]) =>
+      request<{ ok: true }>('POST', `contracts/${encodeURIComponent(id)}/done`, { body: { userIds } }),
+    confirmOffer: (id: string) => request<{ ok: true }>('POST', `contracts/${encodeURIComponent(id)}/confirm`, { body: {} }),
+    relistOffer: (id: string) => request<CreatedResponse>('POST', `contracts/${encodeURIComponent(id)}/relist`, { body: {} }),
+    reportProblem: (id: string, body: ProblemReportRequest) =>
+      request<{ ok: true }>('POST', `contracts/${encodeURIComponent(id)}/report`, { body }),
     finish: (id: string, body: FinishContractRequest) =>
       request<{ ok: true }>('POST', `contracts/${encodeURIComponent(id)}/finish`, { body }),
     acceptApplication: (id: string) =>

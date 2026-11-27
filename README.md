@@ -44,6 +44,12 @@
 
 Overlay sam sprawdza aktualizacje przy starcie i pyta, czy zainstalować nową wersję.
 
+**Oferty i zapłata (od 0.2.0):** oprócz próśb możesz **zaoferować pomoc** („Pomogę zabić
+Arbitra”) z liczbą miejsc — gracze dołączają jak do party. Przy prośbie i ofercie można
+podać **zapłatę w currency z gry** (od osoby). Zapłata odbywa się w grze, poza serwisem —
+Projekt Exile w niej nie pośredniczy. **Tylko currency z gry — RMT jest całkowicie
+zabronione.**
+
 ## Jak to wygląda
 
 <table>

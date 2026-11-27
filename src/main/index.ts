@@ -391,6 +391,8 @@ const handlers: OverlayApi = {
       category: typeof query?.category === 'string' ? query.category : null,
       area: typeof query?.area === 'string' ? query.area : null,
       areaLevel: typeof query?.areaLevel === 'number' ? query.areaLevel : null,
+      kind: query?.kind === 'offer' || query?.kind === 'request' ? query.kind : null,
+      pay: query?.pay === 'free' || query?.pay === 'paid' ? query.pay : null,
     }),
   contract: (id) => api.contract(str(id, 64)),
   createContract: async (body) =>
@@ -403,11 +405,32 @@ const handlers: OverlayApi = {
       areaLevel: typeof body?.areaLevel === 'number' && Number.isInteger(body.areaLevel) ? body.areaLevel : null,
       itemText: typeof body?.itemText === 'string' && body.itemText ? body.itemText.slice(0, 10_000) : null,
       contractType: body?.contractType === 'community' ? 'community' : 'individual',
+      kind: body?.kind === 'offer' ? 'offer' : 'request',
+      slots: typeof body?.slots === 'number' && Number.isInteger(body.slots) ? body.slots : undefined,
+      paymentCurrency: typeof body?.paymentCurrency === 'string' && body.paymentCurrency ? str(body.paymentCurrency, 60) : null,
+      paymentAmount: typeof body?.paymentAmount === 'number' && Number.isInteger(body.paymentAmount) ? body.paymentAmount : null,
     }),
   apply: async (id, message) => requireVersion() ?? api.apply(str(id, 64), message ? str(message, 1000) : undefined),
   sendMessage: async (id, content) => requireVersion() ?? api.sendMessage(str(id, 64), str(content, 2000)),
   extend: async (id) => requireVersion() ?? api.extend(str(id, 64)),
-  close: async (id) => requireVersion() ?? api.close(str(id, 64)),
+  close: async (id, reason) =>
+    requireVersion() ?? api.close(str(id, 64), typeof reason === 'string' && reason.trim() ? str(reason, 500) : undefined),
+  currencies: (game) => api.currencies(game === 'poe1' ? 'poe1' : 'poe2'),
+  joinOffer: async (id) => requireVersion() ?? api.joinOffer(str(id, 64)),
+  leaveOffer: async (id) => requireVersion() ?? api.leaveOffer(str(id, 64)),
+  removeFromOffer: async (id, userId) => requireVersion() ?? api.removeFromOffer(str(id, 64), str(userId, 64)),
+  startOffer: async (id) => requireVersion() ?? api.startOffer(str(id, 64)),
+  completeOffer: async (id, userIds) =>
+    requireVersion() ??
+    api.completeOffer(str(id, 64), Array.isArray(userIds) ? userIds.filter((u) => typeof u === 'string').slice(0, 10) : []),
+  confirmOffer: async (id) => requireVersion() ?? api.confirmOffer(str(id, 64)),
+  relistOffer: async (id) => requireVersion() ?? api.relistOffer(str(id, 64)),
+  reportProblem: async (id, body) =>
+    requireVersion() ??
+    api.reportProblem(str(id, 64), {
+      reason: body?.reason === 'no_service' || body?.reason === 'other' ? body.reason : 'no_payment',
+      description: str(body?.description, 1000),
+    }),
   finish: async (id, helperIds) =>
     requireVersion() ??
     api.finish(str(id, 64), { helperIds: Array.isArray(helperIds) ? helperIds.filter((h) => typeof h === 'string') : [] }),

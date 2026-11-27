@@ -5,6 +5,8 @@ import { useAction, useApi } from '../lib/hooks';
 import { CONTRACT_URL, STATUS_LABELS, areaLabel, timeAgo } from '../lib/format';
 import { ItemCard } from '../components/ItemCard';
 import { LoginRequired } from '../components/common';
+import { PaymentChip, PaymentDisclaimer } from '../components/Payment';
+import { OfferBox, ProblemBox } from './OfferBox';
 
 const ACTIVE = new Set(['open', 'taken', 'in_progress']);
 
@@ -33,6 +35,9 @@ function Detail({ data, state, reload }: { data: ContractDetailResponse; state: 
   const myApplication = applications.find((a) => a.applicantId === me && a.status !== 'withdrawn' && a.status !== 'rejected');
   const active = ACTIVE.has(contract.status);
   const accepted = applications.filter((a) => a.status === 'accepted');
+  const offer = contract.kind === 'offer';
+  const participant = mine || myApplication?.status === 'accepted';
+  const canReport = state.paired && participant && !['open', 'expired'].includes(contract.status);
   const where = areaLabel(contract.area, contract.areaLevel);
   const action = useAction();
   const [notice, setNotice] = useState<string | null>(null);
@@ -52,12 +57,15 @@ function Detail({ data, state, reload }: { data: ContractDetailResponse; state: 
         <span className="badge">{contract.categoryLabel}</span>
         <span className={`badge ${active ? 'green' : ''}`}>{STATUS_LABELS[contract.status]}</span>
         <span className="badge gold">{contract.rpValue} RP</span>
+        {offer && <span className="badge green">Oferta</span>}
+        <PaymentChip payment={contract.payment} />
       </div>
       <h2>{contract.title}</h2>
       <p className="muted small">
         {contract.issuer.name ?? 'Gracz'} · {timeAgo(contract.createdAt)}
         {where && ` · ${where}`}
-        {contract.league && ` · ${contract.league}`} · pomocnicy {contract.helpersCount}/{contract.maxHelpers}
+        {contract.league && ` · ${contract.league}`} · {offer ? 'miejsca' : 'pomocnicy'} {contract.helpersCount}/
+        {contract.maxHelpers}
       </p>
       <p className="content">{contract.description}</p>
       {contract.itemText && <ItemCard text={contract.itemText} onCopy={(t) => window.overlay.copyText(t)} />}
@@ -65,17 +73,30 @@ function Detail({ data, state, reload }: { data: ContractDetailResponse; state: 
         Otwórz na stronie
       </button>
 
+      {contract.payment && <PaymentDisclaimer />}
+
       {action.error && <p className="error">{action.error}</p>}
       {notice && <p className="success">{notice}</p>}
 
-      {!mine && active && !myApplication && (
+      {offer && (
+        <OfferBox
+          contract={contract}
+          applications={applications}
+          me={me}
+          paired={state.paired}
+          pending={action.pending}
+          perform={perform}
+        />
+      )}
+
+      {!offer && !mine && active && !myApplication && (
         <ApplyBox
           paired={state.paired}
           pending={action.pending}
           onApply={(message) => perform(() => window.overlay.apply(contract.id, message || undefined), 'Zgłoszono. Zleceniodawca dostanie powiadomienie.')}
         />
       )}
-      {myApplication && (
+      {!offer && myApplication && (
         <div className="card spread">
           <span>
             Twoje zgłoszenie: <strong>{myApplication.status === 'accepted' ? 'przyjęte' : 'czeka na decyzję'}</strong>
@@ -91,7 +112,7 @@ function Detail({ data, state, reload }: { data: ContractDetailResponse; state: 
         </div>
       )}
 
-      {mine && active && (
+      {!offer && mine && active && (
         <OwnerActions
           accepted={accepted.map((a) => ({ id: a.applicantId, name: a.applicantName }))}
           pending={action.pending}
@@ -101,9 +122,21 @@ function Detail({ data, state, reload }: { data: ContractDetailResponse; state: 
         />
       )}
 
-      <h3>Zgłoszenia ({applications.length})</h3>
-      {applications.length === 0 && <p className="muted small">Nikt się jeszcze nie zgłosił.</p>}
-      {applications.map((application) => (
+      {canReport && (
+        <ProblemBox
+          pending={action.pending}
+          onReport={(reason, description) =>
+            perform(
+              () => window.overlay.reportProblem(contract.id, { reason, description }),
+              'Zgłoszenie wysłane do moderacji.',
+            )
+          }
+        />
+      )}
+
+      {!offer && <h3>Zgłoszenia ({applications.length})</h3>}
+      {!offer && applications.length === 0 && <p className="muted small">Nikt się jeszcze nie zgłosił.</p>}
+      {!offer && applications.map((application) => (
         <div key={application.id} className="message">
           <div className="spread">
             <span className="who">
@@ -132,7 +165,7 @@ function Detail({ data, state, reload }: { data: ContractDetailResponse; state: 
           {message.content}
         </div>
       ))}
-      {state.paired && (mine || myApplication) ? (
+      {state.paired && (mine || (offer ? participant : myApplication)) ? (
         <MessageBox
           pending={action.pending}
           onSend={(content) => perform(() => window.overlay.sendMessage(contract.id, content), 'Wysłano.')}

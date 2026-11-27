@@ -20,7 +20,7 @@ export type Screen =
   | { kind: 'tab' }
   | { kind: 'contract'; id: string }
   | { kind: 'thread'; id: string }
-  | { kind: 'request'; categoryId?: string; itemText?: string | null }
+  | { kind: 'request'; categoryId?: string; itemText?: string | null; offer?: boolean }
   | { kind: 'item-not-found' }
   | { kind: 'ask' };
 
@@ -85,10 +85,11 @@ export function OverlayApp() {
   } else if (screen.kind === 'request') {
     body = (
       <RequestForm
-        key={`${screen.categoryId ?? ''}-${screen.itemText?.length ?? 0}`}
+        key={`${screen.categoryId ?? ''}-${screen.itemText?.length ?? 0}-${screen.offer ? 'o' : 'r'}`}
         state={state}
         initialCategory={screen.categoryId}
         itemText={screen.itemText ?? null}
+        initialOffer={screen.offer ?? false}
         onBack={back}
         onOpenContract={openContract}
       />
@@ -107,7 +108,7 @@ export function OverlayApp() {
   } else if (screen.kind === 'ask') {
     body = <AskForm state={state} onBack={back} onCreated={(id) => setScreen({ kind: 'thread', id })} />;
   } else if (tab === 'requests') {
-    body = <ContractList state={state} onOpen={openContract} onRequest={() => setScreen({ kind: 'request' })} />;
+    body = <ContractList state={state} onOpen={openContract} onRequest={(kind) => setScreen({ kind: 'request', offer: kind === 'offer' })} />;
   } else if (tab === 'mine') {
     body = <MyContracts state={state} onOpen={openContract} />;
   } else {
