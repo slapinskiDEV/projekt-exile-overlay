@@ -13,8 +13,14 @@ import { describeUpdateError } from './update-error';
  */
 const RELEASES_URL = 'https://github.com/slapinskiDEV/projekt-exile-overlay/releases/latest';
 
-/** Co ile sprawdzać w tle (0.3.6) — gracze trzymają overlay włączony całymi dniami. */
-const BACKGROUND_CHECK_MS = 2 * 60 * 60 * 1000;
+/**
+ * Co ile sprawdzać w tle. 0.3.6 miało 2 h — wersja wydana chwilę po starcie
+ * overlaya czekała na alert do dwóch godzin. Od 0.3.8: co 30 min, a dodatkowo przy
+ * otwarciu panelu, jeśli ostatnie sprawdzenie było ponad 10 min temu.
+ */
+const BACKGROUND_CHECK_MS = 30 * 60 * 1000;
+const PANEL_CHECK_MIN_GAP_MS = 10 * 60 * 1000;
+let lastCheckAt = 0;
 
 let initialized = false;
 let onAvailable: (version: string) => void = () => undefined;
@@ -58,7 +64,7 @@ function init() {
 
   autoUpdater.on('update-available', async (info) => {
     diag('updater:available', { version: info.version, manual: manualCheck });
-    // Ciche sprawdzenie (start, co 2 h): bez systemowego okienka, które w grze łatwo
+    // Ciche sprawdzenie (start, co 30 min, otwarcie panelu): bez systemowego okienka, które w grze łatwo
     // przeoczyć — overlay pokazuje okienko nad grą i pasek w panelu.
     if (!manualCheck) {
       busy = false;
@@ -112,7 +118,13 @@ export function onUpdateAvailable(listener: (version: string) => void): void {
   onAvailable = listener;
 }
 
-/** Sprawdzanie w tle co 2 h — pierwsze przy starcie robi `checkForUpdates(false)`. */
+/** Otwarcie panelu: ciche sprawdzenie, jeśli ostatnie było dawno. */
+export function checkForUpdatesIfStale(): void {
+  if (Date.now() - lastCheckAt < PANEL_CHECK_MIN_GAP_MS) return;
+  void checkForUpdates(false);
+}
+
+/** Sprawdzanie w tle co 30 min — pierwsze przy starcie robi `checkForUpdates(false)`. */
 export function startBackgroundChecks(): void {
   if (timer || !app.isPackaged) return;
   timer = setInterval(() => void checkForUpdates(false), BACKGROUND_CHECK_MS);
@@ -150,6 +162,7 @@ export async function checkForUpdates(manual: boolean): Promise<void> {
   init();
   if (busy) return;
   busy = true;
+  lastCheckAt = Date.now();
   manualCheck = manual;
   phase = 'check';
   errorShown = false;

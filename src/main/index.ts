@@ -34,7 +34,7 @@ import { NotificationPoller } from './notifications';
 import { RealtimeNotifications } from './realtime';
 import { SettingsStore } from './settings-store';
 import { ShortcutManager } from './shortcuts';
-import { checkForUpdates, installUpdate, onUpdateAvailable, startBackgroundChecks } from './updater';
+import { checkForUpdates, checkForUpdatesIfStale, installUpdate, onUpdateAvailable, startBackgroundChecks } from './updater';
 import { diag, diagLogPath, initDiagLog } from './diag-log';
 import { createMainWindow, createOverlayWindow, iconPath, loadView } from './windows';
 
@@ -123,6 +123,7 @@ function setPanelVisible(visible: boolean) {
   if (!overlay || overlay.isDestroyed()) return;
   runtime.panelVisible = visible;
   if (visible) {
+    checkForUpdatesIfStale();
     // Kliknięcia poza panelem dalej trafiają do gry — okno łapie je tylko nad
     // panelem (setInteractive z interfejsu). Bez focus(): zabranie aktywności grze
     // działało jak Alt+Tab (gra w pełnym ekranie się zwijała). Klawiaturę panel
