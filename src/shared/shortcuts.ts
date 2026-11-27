@@ -3,19 +3,21 @@
  * walidacja w ustawieniach i w procesie głównym używa tego samego kodu.
  */
 
-export type ShortcutAction = 'togglePanel' | 'requestHelp' | 'askItem';
+export type ShortcutAction = 'togglePanel' | 'requestHelp' | 'offerHelp' | 'askItem';
 
 export type ShortcutMap = Record<ShortcutAction, string>;
 
 export const DEFAULT_SHORTCUTS: ShortcutMap = {
   togglePanel: 'Alt+H',
   requestHelp: 'Alt+P',
+  offerHelp: 'Alt+O',
   askItem: 'Alt+C',
 };
 
 export const SHORTCUT_LABELS: Record<ShortcutAction, string> = {
   togglePanel: 'Pokaż / ukryj panel',
   requestHelp: 'Poproś o pomoc',
+  offerHelp: 'Zaoferuj pomoc',
   askItem: 'Zapytaj o przedmiot',
 };
 

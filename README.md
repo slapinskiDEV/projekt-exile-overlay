@@ -40,7 +40,7 @@
 | --- | --- |
 | **1. Zainstaluj** | Pobierz [`Projekt-Exile-Overlay-Setup.exe`](https://github.com/slapinskiDEV/projekt-exile-overlay/releases/latest/download/Projekt-Exile-Overlay-Setup.exe), uruchom i zaakceptuj ostrzeżenie Windows (wyżej). Grę ustaw w trybie **okna bez ramki** (*Windowed Fullscreen*). |
 | **2. Połącz konto** | Na [projektexile.pl → Ustawienia → „Połącz overlay”](https://projektexile.pl/profile/settings#overlay) wygeneruj kod i wpisz go w overlayu. Bez konta działa **podgląd** próśb. |
-| **3. Graj** | **Alt+H** — lista próśb, **Alt+P** — poproś o pomoc, **Alt+C** — zapytaj o przedmiot pod kursorem. |
+| **3. Graj** | **Alt+H** — lista próśb, **Alt+P** — poproś o pomoc, **Alt+O** — zaoferuj pomoc, **Alt+C** — zapytaj o przedmiot pod kursorem. |
 
 Overlay sam sprawdza aktualizacje przy starcie i pyta, czy zainstalować nową wersję.
 Gdy aktualizacja się nie uda, okienko pokaże powód i przycisk **Pobierz ze strony** —
@@ -85,6 +85,7 @@ zabronione.**
 | --- | --- |
 | **Alt+H** | Pokaż / ukryj panel z prośbami (Esc też chowa) |
 | **Alt+P** | „Poproś o pomoc” — kategoria, jedno zdanie, obszar i poziom z logu gry |
+| **Alt+O** | „Zaoferuj pomoc” — to samo, ale jako oferta z liczbą miejsc i opcjonalną zapłatą |
 | **Alt+C** | „Zapytaj o przedmiot” — najedź kursorem na przedmiot i naciśnij |
 
 Skróty zmienisz w ustawieniach (ikona w zasobniku systemowym → Ustawienia).

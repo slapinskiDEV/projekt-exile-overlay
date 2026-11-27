@@ -165,6 +165,9 @@ export function SetupApp({ initialStep }: { initialStep: string | null }) {
               <strong>{state.settings.shortcuts.requestHelp}</strong> — poproś o pomoc
             </li>
             <li>
+              <strong>{state.settings.shortcuts.offerHelp}</strong> — zaoferuj pomoc
+            </li>
+            <li>
               <strong>{state.settings.shortcuts.askItem}</strong> — zapytaj o przedmiot pod kursorem
             </li>
           </ul>

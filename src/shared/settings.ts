@@ -51,6 +51,7 @@ export function mergeSettings(raw: unknown): StoredSettings {
     shortcuts: {
       togglePanel: typeof shortcuts.togglePanel === 'string' ? shortcuts.togglePanel : DEFAULT_SHORTCUTS.togglePanel,
       requestHelp: typeof shortcuts.requestHelp === 'string' ? shortcuts.requestHelp : DEFAULT_SHORTCUTS.requestHelp,
+      offerHelp: typeof shortcuts.offerHelp === 'string' ? shortcuts.offerHelp : DEFAULT_SHORTCUTS.offerHelp,
       askItem: typeof shortcuts.askItem === 'string' ? shortcuts.askItem : DEFAULT_SHORTCUTS.askItem,
     },
     soundEnabled: value.soundEnabled !== false,

@@ -35,7 +35,13 @@ export function OverlayApp() {
         if (command.kind === 'list') setScreen({ kind: 'tab' });
         else if (command.kind === 'contract') setScreen({ kind: 'contract', id: command.id });
         else if (command.kind === 'item-not-found') setScreen({ kind: 'item-not-found' });
-        else setScreen({ kind: 'request', categoryId: command.categoryId, itemText: command.itemText ?? null });
+        else
+          setScreen({
+            kind: 'request',
+            categoryId: command.categoryId,
+            itemText: command.itemText ?? null,
+            offer: command.offer ?? false,
+          });
       }),
     [],
   );

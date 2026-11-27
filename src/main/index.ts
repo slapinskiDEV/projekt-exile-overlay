@@ -164,6 +164,10 @@ const shortcutHandlers: Record<ShortcutAction, () => void> = {
     if (!store.get().setupDone) return openMainWindow('setup');
     showPanel({ kind: 'request' });
   },
+  offerHelp: () => {
+    if (!store.get().setupDone) return openMainWindow('setup');
+    showPanel({ kind: 'request', offer: true });
+  },
   askItem: () => void askItem(),
 };
 

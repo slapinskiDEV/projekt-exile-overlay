@@ -58,7 +58,7 @@ export interface AppState {
 /** Co pokazać w panelu po skrócie albo kliknięciu w zasobniku. */
 export type PanelCommand =
   | { kind: 'list' }
-  | { kind: 'request'; categoryId?: string; itemText?: string | null }
+  | { kind: 'request'; categoryId?: string; itemText?: string | null; offer?: boolean }
   | { kind: 'item-not-found' }
   | { kind: 'contract'; id: string };
 

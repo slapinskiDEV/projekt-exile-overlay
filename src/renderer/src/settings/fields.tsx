@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { GGG_DISCLAIMER, PAIRING_URL, SITE_URL, type AppState } from '@shared/ipc';
 import {
+  DEFAULT_SHORTCUTS,
   SHORTCUT_LABELS,
   acceleratorFromKeyEvent,
   validateShortcuts,
@@ -228,7 +229,7 @@ export function ShortcutsEditor({ state }: { state: AppState }) {
         </button>
         <button
           onClick={() => {
-            setMap({ togglePanel: 'Alt+H', requestHelp: 'Alt+P', askItem: 'Alt+C' });
+            setMap({ ...DEFAULT_SHORTCUTS });
             setErrors({});
           }}
         >

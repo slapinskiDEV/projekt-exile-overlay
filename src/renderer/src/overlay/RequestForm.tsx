@@ -32,7 +32,7 @@ const COPY = {
 } as const;
 
 /**
- * „Poproś o pomoc” (Alt+P), „Zaoferuj pomoc” i „Zapytaj o przedmiot” (Alt+C, z kartą
+ * „Poproś o pomoc” (Alt+P), „Zaoferuj pomoc” (Alt+O) i „Zapytaj o przedmiot” (Alt+C, z kartą
  * przedmiotu). Rodzaj wynika z przycisku, którym gracz tu trafił (0.3.0) — formularz
  * nie pyta o to drugi raz. Obszar i poziom są wypełnione z logu gry.
  */
