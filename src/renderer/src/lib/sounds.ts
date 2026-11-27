@@ -7,8 +7,9 @@ import { NOTIFICATION_SOUNDS, type NotificationSoundId } from '@shared/settings'
  */
 
 type Note = {
-  /** Częstotliwość w Hz. */
+  /** Częstotliwość w Hz; `to` — płynne przejście do innej (glissando). */
   f: number;
+  to?: number;
   /** Start i długość w sekundach. */
   at: number;
   len: number;
@@ -17,49 +18,49 @@ type Note = {
   gain?: number;
 };
 
+/**
+ * 0.3.5: krótkie (do ~0,35 s) i wyraźnie różne — inna barwa i inny kształt melodii
+ * (jeden ton, dwa w górę, akord, ślizg w dół, ślizg w górę, bęben…).
+ */
 const SYNTH: Record<Exclude<NotificationSoundId, 'classic'>, Note[]> = {
+  // Pojedynczy, czysty „ping” z alikwotem.
   bell: [
-    { f: 1318.5, at: 0, len: 0.9 },
-    { f: 2637, at: 0, len: 0.5, gain: 0.25 },
+    { f: 1760, at: 0, len: 0.35, gain: 0.7 },
+    { f: 3520, at: 0, len: 0.15, gain: 0.2 },
   ],
+  // Szybkie arpeggio w górę — trzy nuty co 50 ms.
   crystal: [
-    { f: 1567.98, at: 0, len: 0.25, wave: 'triangle' },
-    { f: 2093, at: 0.09, len: 0.25, wave: 'triangle' },
-    { f: 2637, at: 0.18, len: 0.45, wave: 'triangle' },
+    { f: 1318.5, at: 0, len: 0.08, wave: 'triangle' },
+    { f: 1760, at: 0.05, len: 0.08, wave: 'triangle' },
+    { f: 2637, at: 0.1, len: 0.2, wave: 'triangle' },
   ],
-  gong: [
-    { f: 196, at: 0, len: 1.6, gain: 0.9 },
-    { f: 293.66, at: 0, len: 1.2, gain: 0.35 },
-    { f: 523.25, at: 0, len: 0.6, gain: 0.15 },
-  ],
+  // Niski bęben: krótki ślizg w dół w basie.
+  gong: [{ f: 180, to: 60, at: 0, len: 0.25, gain: 1 }],
+  // Moneta: dwa szybkie piski w górę (8-bit).
   coin: [
-    { f: 987.77, at: 0, len: 0.08, wave: 'square', gain: 0.35 },
-    { f: 1318.5, at: 0.08, len: 0.35, wave: 'square', gain: 0.35 },
+    { f: 987.77, at: 0, len: 0.06, wave: 'square', gain: 0.3 },
+    { f: 1318.5, at: 0.06, len: 0.2, wave: 'square', gain: 0.3 },
   ],
+  // Akord durowy naraz — „ta-dam” w jednym uderzeniu.
   fanfare: [
-    { f: 523.25, at: 0, len: 0.12, wave: 'sawtooth', gain: 0.3 },
-    { f: 659.25, at: 0.12, len: 0.12, wave: 'sawtooth', gain: 0.3 },
-    { f: 783.99, at: 0.24, len: 0.12, wave: 'sawtooth', gain: 0.3 },
-    { f: 1046.5, at: 0.36, len: 0.4, wave: 'sawtooth', gain: 0.3 },
+    { f: 523.25, at: 0, len: 0.3, wave: 'sawtooth', gain: 0.18 },
+    { f: 659.25, at: 0, len: 0.3, wave: 'sawtooth', gain: 0.18 },
+    { f: 783.99, at: 0, len: 0.3, wave: 'sawtooth', gain: 0.18 },
   ],
-  drop: [
-    { f: 1760, at: 0, len: 0.12, gain: 0.8 },
-    { f: 880, at: 0.1, len: 0.25, gain: 0.6 },
-  ],
-  rune: [
-    { f: 440, at: 0, len: 0.5, wave: 'triangle' },
-    { f: 554.37, at: 0.15, len: 0.5, wave: 'triangle' },
-    { f: 659.25, at: 0.3, len: 0.8, wave: 'triangle' },
-  ],
+  // Kropla: szybki ślizg z góry w dół.
+  drop: [{ f: 1800, to: 500, at: 0, len: 0.18, gain: 0.8 }],
+  // Pytanie: ślizg w górę.
+  rune: [{ f: 400, to: 1300, at: 0, len: 0.22, wave: 'triangle', gain: 0.8 }],
+  // Puls: dwa identyczne krótkie bzyki.
   pulse: [
-    { f: 880, at: 0, len: 0.1, wave: 'square', gain: 0.3 },
-    { f: 880, at: 0.18, len: 0.1, wave: 'square', gain: 0.3 },
+    { f: 660, at: 0, len: 0.05, wave: 'square', gain: 0.3 },
+    { f: 660, at: 0.11, len: 0.05, wave: 'square', gain: 0.3 },
   ],
+  // Alarm: trzy szybkie naprzemienne tony.
   alarm: [
-    { f: 1046.5, at: 0, len: 0.14, wave: 'square', gain: 0.3 },
-    { f: 783.99, at: 0.16, len: 0.14, wave: 'square', gain: 0.3 },
-    { f: 1046.5, at: 0.32, len: 0.14, wave: 'square', gain: 0.3 },
-    { f: 783.99, at: 0.48, len: 0.14, wave: 'square', gain: 0.3 },
+    { f: 1200, at: 0, len: 0.07, wave: 'sawtooth', gain: 0.22 },
+    { f: 800, at: 0.09, len: 0.07, wave: 'sawtooth', gain: 0.22 },
+    { f: 1200, at: 0.18, len: 0.09, wave: 'sawtooth', gain: 0.22 },
   ],
 };
 
@@ -74,7 +75,8 @@ function synth(notes: Note[], volume: number) {
     const osc = ctx.createOscillator();
     const gain = ctx.createGain();
     osc.type = note.wave ?? 'sine';
-    osc.frequency.value = note.f;
+    osc.frequency.setValueAtTime(note.f, now + note.at);
+    if (note.to) osc.frequency.exponentialRampToValueAtTime(note.to, now + note.at + note.len);
     const peak = Math.max(0.0001, volume * (note.gain ?? 0.6) * 0.5);
     const start = now + note.at;
     gain.gain.setValueAtTime(0.0001, start);

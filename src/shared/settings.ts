@@ -29,13 +29,13 @@ export interface StoredSettings {
 /** Dźwięki powiadomień do wyboru w ustawieniach (0.3.4). */
 export const NOTIFICATION_SOUNDS = [
   { id: 'classic', label: 'Klasyczny' },
-  { id: 'bell', label: 'Dzwonek' },
-  { id: 'crystal', label: 'Kryształ' },
-  { id: 'gong', label: 'Gong' },
+  { id: 'bell', label: 'Ping' },
+  { id: 'crystal', label: 'Arpeggio' },
+  { id: 'gong', label: 'Bęben' },
   { id: 'coin', label: 'Moneta' },
-  { id: 'fanfare', label: 'Fanfara' },
+  { id: 'fanfare', label: 'Akord' },
   { id: 'drop', label: 'Kropla' },
-  { id: 'rune', label: 'Runa' },
+  { id: 'rune', label: 'Pytanie' },
   { id: 'pulse', label: 'Puls' },
   { id: 'alarm', label: 'Alarm' },
 ] as const;
