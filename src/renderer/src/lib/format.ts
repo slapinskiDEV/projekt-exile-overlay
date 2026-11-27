@@ -35,6 +35,7 @@ export const CONTRACT_URL = (id: string) => `https://projektexile.pl/contracts/$
 /** Zapas na wypadek braku połączenia z API — normalnie kategorie przychodzą ze strony. */
 export const REQUEST_CATEGORIES: Array<{ id: string; label: string }> = [
   { id: 'boss_carry', label: 'Pomoc z bossem' },
+  { id: 'campaign', label: 'Kampania' },
   { id: 'leveling', label: 'Levelowanie / akt' },
   { id: 'mapping', label: 'Mapy / endgame' },
   { id: 'crafting', label: 'Crafting / przedmiot' },
