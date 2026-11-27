@@ -3,8 +3,9 @@ import { areaLabel, timeAgo } from '../lib/format';
 import { PaymentChip } from '../components/Payment';
 
 /**
- * Karta kontraktu na liście (0.3.6): po lewej co i gdzie, po prawej liczby, które
- * porównuje się między kartami — nagroda, miejsca, zapłata i dopasowanie do obszaru.
+ * Karta kontraktu na liście (0.3.7): najpierw tytuł, pod nim jedna szara linijka
+ * „gdzie · kto · kiedy”; po prawej tylko liczby. Rodzaj widać po kolorze paska
+ * (złoty — prośba, zielony — oferta), bez stosu plakietek.
  */
 export function ContractRow({
   contract,
@@ -19,21 +20,22 @@ export function ContractRow({
   const offer = contract.kind === 'offer';
   const full = contract.helpersCount >= contract.maxHelpers;
   return (
-    <button className={`list-item card-row ${offer ? 'offer' : 'request'}`} onClick={() => onOpen(contract.id)}>
+    <button
+      className={`list-item card-row ${offer ? 'offer' : 'request'}`}
+      onClick={() => onOpen(contract.id)}
+      aria-label={`${offer ? 'Oferta' : 'Prośba'}: ${contract.title}`}
+    >
       <div className="card-main">
-        <span className="row tight">
-          <span className={`kind-tag ${offer ? 'offer' : 'request'}`}>{offer ? 'Oferta' : 'Prośba'}</span>
-          <span className="badge">{contract.categoryLabel}</span>
-        </span>
         <div className="item-title">{contract.title}</div>
-        {where && (
-          <div className="where">
-            <span aria-hidden>📍</span> <span>{where}</span>
-          </div>
-        )}
-        <div className="meta">
-          <span>{contract.issuer.name ?? 'Gracz'}</span>
-          <span>{timeAgo(contract.createdAt)}</span>
+        <div className="card-sub">
+          <span className="card-category">{contract.categoryLabel}</span>
+          {contract.areaRank === 0 && <span className="here">● Ten obszar</span>}
+          {contract.areaRank === 1 && <span className="near">Twój poziom</span>}
+          {where && contract.areaRank !== 0 && <span>📍 {where}</span>}
+        </div>
+        <div className="card-sub muted">
+          {contract.issuer.name ?? 'Gracz'} · {timeAgo(contract.createdAt)}
+          {extra && <span className="card-extra"> · {extra}</span>}
         </div>
       </div>
       <div className="card-side">
@@ -41,13 +43,10 @@ export function ContractRow({
           {contract.rpValue}
           <small> RP</small>
         </span>
-        <span className={`side-slots ${full ? 'full' : ''}`} title={offer ? 'Zajęte miejsca' : 'Pomocnicy'}>
-          {offer ? 'miejsca' : 'pomocnicy'} {contract.helpersCount}/{contract.maxHelpers}
+        <span className={`side-slots ${full ? 'full' : ''}`}>
+          {contract.helpersCount}/{contract.maxHelpers} <small>{offer ? 'miejsca' : 'pomocników'}</small>
         </span>
         {contract.payment && <PaymentChip payment={contract.payment} />}
-        {contract.areaRank === 0 && <span className="badge green">Ten obszar</span>}
-        {contract.areaRank === 1 && <span className="badge gold">Twój poziom</span>}
-        {extra && <span className="badge gold">{extra}</span>}
       </div>
     </button>
   );

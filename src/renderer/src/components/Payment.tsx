@@ -11,7 +11,15 @@ export function PaymentChip({ payment }: { payment: OverlayContract['payment'] }
 }
 
 /** Zastrzeżenie przy zapłacie — serwis nie pośredniczy, RMT zabronione. */
-export function PaymentDisclaimer() {
+/** `compact` — jedna linijka w podglądzie kontraktu (0.3.7); pełna treść w formularzu. */
+export function PaymentDisclaimer({ compact = false }: { compact?: boolean }) {
+  if (compact) {
+    return (
+      <p className="disclaimer-line" title="Projekt Exile nie pośredniczy w płatnościach i nie gwarantuje zwrotu.">
+        💰 Zapłata w grze, poza serwisem · tylko currency — RMT zabronione
+      </p>
+    );
+  }
   return (
     <div className="disclaimer">
       <p>

@@ -60,10 +60,11 @@ describe('ContractRow', () => {
   it('shows helpers, RP, area and the same-area badge', () => {
     const onOpen = vi.fn();
     render(<ContractRow contract={contract} onOpen={onOpen} />);
-    expect(screen.getByText('pomocnicy 2/6')).toBeTruthy();
+    expect(screen.getByText((_, el) => el?.classList.contains('side-slots') === true && el.textContent === '2/6 pomocników')).toBeTruthy();
     expect(screen.getByText((_, el) => el?.className === 'side-rp' && el.textContent === '15 RP')).toBeTruthy();
-    expect(screen.getByText('Przejście Zdrajcy (poziom obszaru 22)')).toBeTruthy();
-    expect(screen.getByText('Ten obszar')).toBeTruthy();
+    // W tym samym obszarze nazwa jest zbędna — zostaje „Ten obszar” (0.3.7).
+    expect(screen.getByText('● Ten obszar')).toBeTruthy();
+    expect(screen.queryByText(/Przejście Zdrajcy/)).toBeNull();
     fireEvent.click(screen.getByText('Pomoc z bossem aktu 2'));
     expect(onOpen).toHaveBeenCalledWith('c1');
   });

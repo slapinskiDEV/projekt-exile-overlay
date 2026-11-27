@@ -45,8 +45,9 @@ const applications = (offerResult: 'awaiting' | null = null): ContractDetailResp
 describe('oferty w overlayu', () => {
   it('wiersz pokazuje ofertę, miejsca i cenę', () => {
     render(<ContractRow contract={base} onOpen={() => {}} />);
-    expect(screen.getByText('Oferta')).toBeTruthy();
-    expect(screen.getByText(/miejsca 1\/3/)).toBeTruthy();
+    // 0.3.7: rodzaj po kolorze paska i w etykiecie dostępności, liczby po prawej.
+    expect(screen.getByRole('button', { name: /^Oferta:/ })).toBeTruthy();
+    expect(screen.getByText((_, el) => el?.classList.contains('side-slots') === true && el.textContent === '1/3 miejsca')).toBeTruthy();
     expect(screen.getByText(/Divine Orb/)).toBeTruthy();
   });
 

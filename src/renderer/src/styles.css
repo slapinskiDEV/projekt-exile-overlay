@@ -1528,3 +1528,143 @@ button.small-button {
   color: var(--text);
   font-size: 19px;
 }
+
+/* --- 0.3.7: mniej naraz — listwa, prostsze karty, liczby w podglądzie --------------- */
+
+.list-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.segmented {
+  display: flex;
+  border: 1px solid var(--border-strong);
+}
+
+.segmented button {
+  border: none;
+  background: transparent;
+  color: var(--muted);
+  padding: 7px 16px 8px;
+  font-size: 20px;
+}
+
+.segmented button + button {
+  border-left: 1px solid var(--border-strong);
+}
+
+.segmented button.request.active {
+  background: color-mix(in srgb, var(--gold) 22%, transparent);
+  color: var(--gold-2);
+}
+
+.segmented button.offer.active {
+  background: color-mix(in srgb, var(--green) 22%, transparent);
+  color: var(--green);
+}
+
+.filter-toggle.on {
+  color: var(--gold-2);
+}
+
+.cta-button {
+  margin-left: auto;
+}
+
+.cta-button.offer {
+  background: var(--green);
+  border-color: var(--green);
+}
+
+.list-hint {
+  margin: 0;
+  font-size: 17px;
+  color: var(--muted);
+}
+
+.card-row .item-title {
+  font-size: 22px;
+  line-height: 1.15;
+}
+
+.card-sub {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  font-size: 17px;
+  color: var(--text);
+}
+
+.card-sub.muted {
+  color: var(--muted);
+}
+
+.card-category {
+  color: var(--muted);
+}
+
+.card-sub .here {
+  color: var(--green);
+}
+
+.card-sub .near {
+  color: var(--gold-2);
+}
+
+.card-extra {
+  color: var(--gold-2);
+}
+
+.card-side {
+  justify-content: center;
+}
+
+.side-slots small,
+.side-rp small {
+  font-size: 15px;
+  color: var(--muted);
+}
+
+.detail-meta {
+  margin: -6px 0 12px;
+  font-size: 18px;
+  color: var(--muted);
+}
+
+.stat-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 22px;
+  align-items: flex-end;
+}
+
+.stat {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.stat-value {
+  font-family: var(--font-pixel);
+  font-size: 30px;
+  line-height: 0.95;
+  color: var(--text);
+}
+
+.stat-value.gold {
+  color: var(--gold-2);
+}
+
+.stat-label {
+  font-size: 15px;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+.disclaimer-line {
+  margin: 0;
+  font-size: 17px;
+  color: var(--muted);
+}

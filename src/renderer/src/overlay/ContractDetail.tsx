@@ -38,19 +38,17 @@ export function ContractDetail({ id, state, onBack }: { id: string; state: AppSt
 
 type SubTab = 'about' | 'people' | 'chat';
 
-function Fact({ icon, label, children }: { icon: string; label: string; children: React.ReactNode }) {
+function Stat({ value, label, gold }: { value: string; label: string; gold?: boolean }) {
   return (
-    <div className="fact">
-      <span className="fact-label">
-        <span aria-hidden>{icon}</span> {label}
-      </span>
-      <span className="fact-value">{children}</span>
+    <div className="stat">
+      <span className={`stat-value ${gold ? 'gold' : ''}`}>{value}</span>
+      <span className="stat-label">{label}</span>
     </div>
   );
 }
 
 /**
- * Podgląd kontraktu (0.3.6): nagłówek z czterema najważniejszymi faktami, blok
+ * Podgląd kontraktu (0.3.6–0.3.7): tytuł, jedna linijka „gdzie · kto”, liczby, blok
  * „Twój ruch” z jedną główną akcją i podzakładki Opis / Uczestnicy / Rozmowa —
  * zamiast jednej długiej ściany informacji.
  */
@@ -90,20 +88,19 @@ function Detail({ data, state, reload }: { data: ContractDetailResponse; state: 
           <span className={`badge ${active ? 'green' : ''}`}>{STATUS_LABELS[contract.status]}</span>
         </div>
         <h2 className="detail-title">{contract.title}</h2>
-        <div className="facts">
-          <Fact icon="📍" label="Gdzie">
-            {where ?? 'dowolnie'}
-            {contract.league && <span className="muted"> · {contract.league}</span>}
-          </Fact>
-          <Fact icon="👤" label={offer ? 'Oferuje' : 'Prosi'}>
-            {contract.issuer.name ?? 'Gracz'} <span className="muted">· {timeAgo(contract.createdAt)}</span>
-          </Fact>
-          <Fact icon="👥" label={offer ? 'Miejsca' : 'Pomocnicy'}>
-            {contract.helpersCount}/{contract.maxHelpers}
-          </Fact>
-          <Fact icon="🏆" label="Nagroda">
-            <span className="rp">{contract.rpValue} RP</span> {contract.payment && <PaymentChip payment={contract.payment} />}
-          </Fact>
+        <p className="detail-meta">
+          {where ? `📍 ${where}` : '📍 dowolny obszar'} · {contract.issuer.name ?? 'Gracz'} · {timeAgo(contract.createdAt)}
+        </p>
+        {/* Tylko liczby, które się porównuje (0.3.7) — bez kafelków. */}
+        <div className="stat-row">
+          <Stat value={`${contract.rpValue}`} label="RP" gold />
+          <Stat value={`${contract.helpersCount}/${contract.maxHelpers}`} label={offer ? 'miejsca' : 'pomocników'} />
+          {contract.payment && (
+            <div className="stat">
+              <PaymentChip payment={contract.payment} />
+              <span className="stat-label">od osoby</span>
+            </div>
+          )}
         </div>
       </section>
 
@@ -184,7 +181,7 @@ function Detail({ data, state, reload }: { data: ContractDetailResponse; state: 
         <section className="tab-body stack">
           {contract.description ? <p className="content">{contract.description}</p> : <p className="muted">Bez opisu.</p>}
           {contract.itemText && <ItemCard text={contract.itemText} onCopy={(t) => window.overlay.copyText(t)} />}
-          {contract.payment && <PaymentDisclaimer />}
+          {contract.payment && <PaymentDisclaimer compact />}
           {canReport && (
             <div className="problem-row">
               <ProblemBox
