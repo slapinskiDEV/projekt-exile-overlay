@@ -4,6 +4,27 @@ import { useApi } from '../lib/hooks';
 import { useCategories } from '../lib/categories';
 import { ContractRow } from './ContractRow';
 
+const KINDS = {
+  request: {
+    label: 'Prośby',
+    hint: 'Gracze szukają pomocy',
+    ctaTitle: 'Potrzebujesz pomocy?',
+    ctaText: 'Wystaw prośbę — gracze się zgłoszą.',
+    ctaButton: 'Poproś o pomoc',
+    empty: 'Brak otwartych próśb',
+    emptyHint: 'Może ktoś poprosi za chwilę — albo zaoferuj pomoc w zakładce Oferty.',
+  },
+  offer: {
+    label: 'Oferty',
+    hint: 'Gracze oferują pomoc',
+    ctaTitle: 'Chcesz pomóc innym?',
+    ctaText: 'Wystaw ofertę — gracze dołączą jak do party.',
+    ctaButton: 'Zaoferuj pomoc',
+    empty: 'Brak otwartych ofert',
+    emptyHint: 'Bądź pierwszy — zaoferuj pomoc innym.',
+  },
+} as const;
+
 /**
  * Lista otwartych próśb albo ofert pomocy (spec 0192 serwisu) — kolejność od serwera:
  * ten obszar → poziom ±5 → reszta.
@@ -24,6 +45,7 @@ export function ContractList({
   const league = state.settings.league;
   const area = state.area?.name ?? null;
   const areaLevel = state.area?.level ?? null;
+  const copy = KINDS[kind];
 
   const { data, error, loading, reload } = useApi(
     () =>
@@ -34,23 +56,33 @@ export function ContractList({
 
   return (
     <div className="stack">
-      <div className="row">
-        <div className="segmented" role="tablist" aria-label="Rodzaj">
-          <button role="tab" aria-selected={kind === 'request'} className={kind === 'request' ? 'active' : ''} onClick={() => setKind('request')}>
-            Prośby
+      <div className="kind-switch" role="tablist" aria-label="Rodzaj">
+        {(['request', 'offer'] as const).map((k) => (
+          <button
+            key={k}
+            role="tab"
+            aria-selected={kind === k}
+            className={`${k} ${kind === k ? 'active' : ''}`}
+            onClick={() => setKind(k)}
+          >
+            <strong>{KINDS[k].label}</strong>
+            <span>{KINDS[k].hint}</span>
           </button>
-          <button role="tab" aria-selected={kind === 'offer'} className={kind === 'offer' ? 'active' : ''} onClick={() => setKind('offer')}>
-            Oferty
-          </button>
-        </div>
-        <select value={pay} onChange={(e) => setPay(e.target.value as '' | 'free' | 'paid')} aria-label="Zapłata">
-          <option value="">Wszystkie</option>
-          <option value="free">Darmowe</option>
-          <option value="paid">Płatne</option>
-        </select>
+        ))}
       </div>
-      <div className="row">
-        <select value={category} onChange={(e) => setCategory(e.target.value)} style={{ flex: 1 }} aria-label="Kategoria">
+
+      <div className={`cta ${kind}`}>
+        <div>
+          <strong>{copy.ctaTitle}</strong>
+          <span>{copy.ctaText}</span>
+        </div>
+        <button className="primary" onClick={() => onRequest(kind)}>
+          {copy.ctaButton}
+        </button>
+      </div>
+
+      <div className="filters">
+        <select value={category} onChange={(e) => setCategory(e.target.value)} aria-label="Kategoria">
           <option value="">Wszystkie kategorie</option>
           {categories.map((c) => (
             <option key={c.id} value={c.id}>
@@ -58,20 +90,25 @@ export function ContractList({
             </option>
           ))}
         </select>
-        <button onClick={() => void reload()} disabled={loading} title="Odśwież">
+        <select value={pay} onChange={(e) => setPay(e.target.value as '' | 'free' | 'paid')} aria-label="Zapłata">
+          <option value="">Darmowe i płatne</option>
+          <option value="free">Tylko darmowe</option>
+          <option value="paid">Tylko płatne</option>
+        </select>
+        <button className="icon" onClick={() => void reload()} disabled={loading} title="Odśwież" aria-label="Odśwież">
           ↻
         </button>
-        <button className="primary" onClick={() => onRequest(kind)}>
-          {kind === 'offer' ? 'Zaoferuj' : 'Poproś'}
-        </button>
       </div>
+
       {error && <p className="error">{error.message}</p>}
       {!error && data && data.contracts.length === 0 && (
-        <p className="muted">
-          {kind === 'offer' ? 'Brak otwartych ofert' : 'Brak otwartych próśb'}
-          {league ? ` w lidze ${league}` : ''}.{' '}
-          {kind === 'offer' ? 'Zaoferuj pomoc innym.' : 'Może ktoś potrzebuje pomocy za chwilę.'}
-        </p>
+        <div className="empty">
+          <strong>
+            {copy.empty}
+            {league ? ` w lidze ${league}` : ''}
+          </strong>
+          <span>{copy.emptyHint}</span>
+        </div>
       )}
       {!data && loading && <p className="muted">Ładowanie…</p>}
       <div className="list">

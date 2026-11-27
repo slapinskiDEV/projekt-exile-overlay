@@ -144,14 +144,20 @@ export function OverlayApp() {
             </button>
           </div>
           <div className="panel-area">
-            {where ? `Jesteś: ${where}` : 'Obszar nieznany — wskaż Client.txt w ustawieniach.'}
-            {state.character && ` · ${state.character.name}, ${state.character.level} lvl`}
-            {!state.paired && ' · tryb podglądu'}
+            <span className={`area-chip ${where ? '' : 'unknown'}`} title="Obszar z logu gry">
+              📍 {where ?? 'Obszar nieznany — wskaż Client.txt w ustawieniach'}
+            </span>
+            {state.character && (
+              <span className="area-chip">
+                {state.character.name} · {state.character.level} lvl
+              </span>
+            )}
+            {!state.paired && <span className="area-chip warn">tryb podglądu</span>}
           </div>
           {screen.kind === 'tab' && !state.updateRequired && (
             <div className="tabs">
               <button className={tab === 'requests' ? 'active' : ''} onClick={() => setTab('requests')}>
-                Prośby
+                Kontrakty
               </button>
               <button className={tab === 'mine' ? 'active' : ''} onClick={() => setTab('mine')}>
                 Moje

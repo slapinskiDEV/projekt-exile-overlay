@@ -38,6 +38,6 @@ describe('OverlayApp', () => {
     render(<OverlayApp />);
     expect(await screen.findByText('Projekt Exile')).toBeTruthy();
     expect(screen.getByText(/poziom obszaru 53/)).toBeTruthy();
-    expect(screen.getByText(/Dawnbringer, 41 lvl/)).toBeTruthy();
+    expect(screen.getByText(/Dawnbringer · 41 lvl/)).toBeTruthy();
   });
 });
