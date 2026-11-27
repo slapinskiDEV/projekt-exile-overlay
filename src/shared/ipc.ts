@@ -168,6 +168,8 @@ export interface OverlayEvents {
   state: AppState;
   panel: PanelCommand;
   notification: OverlayNotification;
+  /** Druga strona coś zmieniła w kontrakcie (0.3.4) — widoki przeładowują dane od razu. */
+  'contract-changed': string;
 }
 
 export type OverlayEventName = keyof OverlayEvents;

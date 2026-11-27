@@ -39,6 +39,7 @@ const relistOffer = vi.fn(async () => ({ ok: true, data: { id: 'new' } }));
     },
   }),
   updateSettings,
+  on: () => () => undefined,
   relistOffer,
 };
 

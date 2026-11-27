@@ -16,7 +16,7 @@ import {
 import { parseItemText } from '@shared/poe-item';
 import { isBelowMinVersion } from '@shared/version';
 import { SHORTCUT_LABELS, validateShortcuts, type ShortcutAction } from '@shared/shortcuts';
-import { MAX_HIDDEN_CONTRACTS, toPublicSettings, type PublicSettings } from '@shared/settings';
+import { MAX_HIDDEN_CONTRACTS, clampVolume, isNotificationSound, toPublicSettings, type PublicSettings } from '@shared/settings';
 import {
   OVERLAY_API_METHODS,
   type ApiResult,
@@ -248,7 +248,12 @@ function startWatcher() {
 function startNotifications() {
   stopNotifications();
   if (!state().paired || runtime.updateRequired) return;
-  poller = new NotificationPoller(api, (notification) => send(overlay, 'notification', notification));
+  poller = new NotificationPoller(
+    api,
+    (notification) => send(overlay, 'notification', notification),
+    undefined,
+    (contractId) => send(overlay, 'contract-changed', contractId),
+  );
   poller.start();
   realtime = new RealtimeNotifications(api, () => void poller?.poll());
   void realtime.start();
@@ -299,6 +304,8 @@ const handlers: OverlayApi = {
       if (typeof patch.nick === 'string') allowed.nick = patch.nick.trim().slice(0, 40);
       if ('clientTxtPath' in patch) allowed.clientTxtPath = typeof patch.clientTxtPath === 'string' ? patch.clientTxtPath : null;
       if (typeof patch.soundEnabled === 'boolean') allowed.soundEnabled = patch.soundEnabled;
+      if (isNotificationSound(patch.notificationSound)) allowed.notificationSound = patch.notificationSound;
+      if ('soundVolume' in patch) allowed.soundVolume = clampVolume(patch.soundVolume, store.get().soundVolume);
       if (Array.isArray(patch.hiddenContracts)) {
         allowed.hiddenContracts = patch.hiddenContracts
           .filter((id): id is string => typeof id === 'string' && id.length <= 64)

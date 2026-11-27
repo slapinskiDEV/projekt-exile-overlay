@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import type { OverlayNotification } from '@shared/api-types';
 import { Interactive } from '../components/Interactive';
-import sound from '../assets/notify.wav';
+import { playNotificationSound } from '../lib/sounds';
 
 const DURATION_MS = 6_000;
 /** „Przedłużyć?” wymaga decyzji — zostaje dłużej. */
@@ -13,20 +13,26 @@ type Toast = { notification: OverlayNotification; status: string | null };
  * Okienka powiadomień — widoczne także przy ukrytym panelu. Okno przepuszcza
  * kliknięcia do gry, dopóki kursor nie znajdzie się nad okienkiem.
  */
-export function Toasts({ soundEnabled, onOpenContract }: { soundEnabled: boolean; onOpenContract: (id: string) => void }) {
+export function Toasts({
+  soundEnabled,
+  sound,
+  volume,
+  onOpenContract,
+}: {
+  soundEnabled: boolean;
+  sound: string;
+  volume: number;
+  onOpenContract: (id: string) => void;
+}) {
   const [toasts, setToasts] = useState<Toast[]>([]);
-  const soundRef = useRef(soundEnabled);
-  soundRef.current = soundEnabled;
+  const soundRef = useRef({ soundEnabled, sound, volume });
+  soundRef.current = { soundEnabled, sound, volume };
 
   useEffect(
     () =>
       window.overlay.on('notification', (notification) => {
         setToasts((list) => [...list.filter((t) => t.notification.id !== notification.id), { notification, status: null }].slice(-4));
-        if (soundRef.current) {
-          const audio = new Audio(sound);
-          audio.volume = 0.6;
-          void audio.play().catch(() => undefined);
-        }
+        if (soundRef.current.soundEnabled) playNotificationSound(soundRef.current.sound, soundRef.current.volume);
         const ms = notification.type === 'contract_expiry_warning' ? EXPIRY_DURATION_MS : DURATION_MS;
         setTimeout(() => setToasts((list) => list.filter((t) => t.notification.id !== notification.id)), ms);
       }),

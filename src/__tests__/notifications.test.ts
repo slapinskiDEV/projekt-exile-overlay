@@ -41,4 +41,26 @@ describe('NotificationPoller', () => {
     await new NotificationPoller(api, show).poll();
     expect(show.mock.calls.map((c) => c[0].id)).toEqual(['3', '4', '5']);
   });
+
+  it('pokazuje powiadomienia ofert i zgłasza zmianę kontraktu (0.3.4)', async () => {
+    let list: OverlayNotification[] = [];
+    const api = {
+      notifications: vi.fn(async () => ({ ok: true as const, data: { notifications: list } })),
+      markRead: vi.fn(async () => ({ ok: true as const, data: { ok: true as const } })),
+    };
+    const show = vi.fn();
+    const changed = vi.fn();
+    const poller = new NotificationPoller(api, show, 25_000, changed);
+    await poller.poll();
+
+    list = [
+      { ...n('j', 'contract_offer_joined', '2026-11-20T10:00:00Z'), contractId: 'c1' },
+      { ...n('k', 'contract_offer_confirm_request', '2026-11-20T10:01:00Z'), contractId: 'c1' },
+      { ...n('l', 'forum_like', '2026-11-20T10:02:00Z'), contractId: 'c2' },
+    ];
+    await poller.poll();
+    expect(show.mock.calls.map((c) => c[0].id)).toEqual(['j', 'k']);
+    expect(changed.mock.calls.map((c) => c[0])).toEqual(['c1', 'c2']);
+  });
 });
+

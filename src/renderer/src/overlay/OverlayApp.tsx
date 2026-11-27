@@ -127,6 +127,8 @@ export function OverlayApp() {
     <>
       <Toasts
         soundEnabled={state.settings.soundEnabled}
+        sound={state.settings.notificationSound}
+        volume={state.settings.soundVolume}
         onOpenContract={(id) => {
           void window.overlay.setPanelVisible(true);
           openContract(id);

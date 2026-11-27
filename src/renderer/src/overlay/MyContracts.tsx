@@ -28,6 +28,7 @@ export function MyContracts({
   const { data, error, loading, reload } = useApi(() => window.overlay.me(), [], {
     refreshMs: 30_000,
     enabled: state.paired && state.panelVisible,
+    contractId: '*',
   });
 
   if (!state.paired) return <LoginRequired />;

@@ -14,6 +14,9 @@ export interface StoredSettings {
   clientTxtPath: string | null;
   shortcuts: ShortcutMap;
   soundEnabled: boolean;
+  /** Dźwięk powiadomień i głośność 0–100 (0.3.4). */
+  notificationSound: NotificationSoundId;
+  soundVolume: number;
   /** Zakończone kontrakty schowane przez gracza w zakładce „Moje” (0.3.4). */
   hiddenContracts: string[];
   profile: OverlayProfile | null;
@@ -21,6 +24,30 @@ export interface StoredSettings {
   tokenEncrypted: string | null;
   /** Token jawnym tekstem — tylko gdy system nie udostępnia szyfrowania. */
   tokenPlain: string | null;
+}
+
+/** Dźwięki powiadomień do wyboru w ustawieniach (0.3.4). */
+export const NOTIFICATION_SOUNDS = [
+  { id: 'classic', label: 'Klasyczny' },
+  { id: 'bell', label: 'Dzwonek' },
+  { id: 'crystal', label: 'Kryształ' },
+  { id: 'gong', label: 'Gong' },
+  { id: 'coin', label: 'Moneta' },
+  { id: 'fanfare', label: 'Fanfara' },
+  { id: 'drop', label: 'Kropla' },
+  { id: 'rune', label: 'Runa' },
+  { id: 'pulse', label: 'Puls' },
+  { id: 'alarm', label: 'Alarm' },
+] as const;
+
+export type NotificationSoundId = (typeof NOTIFICATION_SOUNDS)[number]['id'];
+
+export function isNotificationSound(value: unknown): value is NotificationSoundId {
+  return NOTIFICATION_SOUNDS.some((s) => s.id === value);
+}
+
+export function clampVolume(value: unknown, fallback: number): number {
+  return typeof value === 'number' && Number.isFinite(value) ? Math.round(Math.min(100, Math.max(0, value))) : fallback;
 }
 
 /** Ile schowanych kontraktów pamiętamy — starsze i tak nie wracają w „Moje”. */
@@ -35,6 +62,8 @@ export const DEFAULT_SETTINGS: StoredSettings = {
   clientTxtPath: null,
   shortcuts: DEFAULT_SHORTCUTS,
   soundEnabled: true,
+  notificationSound: 'classic',
+  soundVolume: 60,
   hiddenContracts: [],
   profile: null,
   tokenEncrypted: null,
@@ -61,6 +90,8 @@ export function mergeSettings(raw: unknown): StoredSettings {
       askItem: typeof shortcuts.askItem === 'string' ? shortcuts.askItem : DEFAULT_SHORTCUTS.askItem,
     },
     soundEnabled: value.soundEnabled !== false,
+    notificationSound: isNotificationSound(value.notificationSound) ? value.notificationSound : 'classic',
+    soundVolume: clampVolume(value.soundVolume, 60),
     hiddenContracts: Array.isArray(value.hiddenContracts)
       ? value.hiddenContracts.filter((id): id is string => typeof id === 'string').slice(-MAX_HIDDEN_CONTRACTS)
       : [],

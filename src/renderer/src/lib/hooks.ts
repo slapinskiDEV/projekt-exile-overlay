@@ -20,7 +20,12 @@ export function useAppState(): AppState | null {
 export function useApi<T>(
   load: () => Promise<ApiResult<T>>,
   deps: unknown[],
-  options: { refreshMs?: number; enabled?: boolean } = {},
+  options: {
+    refreshMs?: number;
+    enabled?: boolean;
+    /** Przeładuj od razu po zdarzeniu `contract-changed` dla tego kontraktu (`'*'` — dowolnego). */
+    contractId?: string;
+  } = {},
 ) {
   const [data, setData] = useState<T | null>(null);
   const [error, setError] = useState<ApiFailure | null>(null);
@@ -48,6 +53,14 @@ export function useApi<T>(
     const timer = setInterval(() => void reload(), options.refreshMs);
     return () => clearInterval(timer);
   }, [enabled, options.refreshMs, reload, ...deps]);
+
+  const watched = options.contractId;
+  useEffect(() => {
+    if (!enabled || !watched) return;
+    return window.overlay.on('contract-changed', (id) => {
+      if (watched === '*' || watched === id) void reload();
+    });
+  }, [enabled, watched, reload]);
 
   return { data, error, loading, reload };
 }

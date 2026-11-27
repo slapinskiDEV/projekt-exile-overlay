@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { NOTIFICATION_SOUNDS } from '@shared/settings';
 import { GGG_DISCLAIMER, PAIRING_URL, SITE_URL, type AppState } from '@shared/ipc';
 import {
   DEFAULT_SHORTCUTS,
@@ -9,7 +10,7 @@ import {
   type ShortcutMap,
 } from '@shared/shortcuts';
 import { useAction, useApi } from '../lib/hooks';
-import sound from '../assets/notify.wav';
+import { playNotificationSound } from '../lib/sounds';
 
 /** Wybór ligi z listy PoE 2 pobranej przez API. */
 export function LeaguePicker({ value, onChange }: { value: string | null; onChange: (league: string) => void }) {
@@ -242,26 +243,59 @@ export function ShortcutsEditor({ state }: { state: AppState }) {
 }
 
 export function SoundToggle({ state }: { state: AppState }) {
+  const { soundEnabled, notificationSound, soundVolume } = state.settings;
+  const [volume, setVolume] = useState(soundVolume);
+  useEffect(() => setVolume(soundVolume), [soundVolume]);
+
   return (
-    <div className="row">
+    <div className="stack">
       <label className="checkbox">
         <input
           type="checkbox"
-          checked={state.settings.soundEnabled}
+          checked={soundEnabled}
           onChange={(e) => void window.overlay.updateSettings({ soundEnabled: e.target.checked })}
         />
         Dźwięk przy powiadomieniach
       </label>
-      <button
-        className="ghost"
-        onClick={() => {
-          const audio = new Audio(sound);
-          audio.volume = 0.6;
-          void audio.play().catch(() => undefined);
-        }}
-      >
-        Odtwórz
-      </button>
+      <div className="chips sound-chips" role="radiogroup" aria-label="Dźwięk powiadomień">
+        {NOTIFICATION_SOUNDS.map((s) => (
+          <button
+            key={s.id}
+            role="radio"
+            aria-checked={notificationSound === s.id}
+            className={`chip ${notificationSound === s.id ? 'active' : ''}`}
+            disabled={!soundEnabled}
+            onClick={() => {
+              playNotificationSound(s.id, volume);
+              void window.overlay.updateSettings({ notificationSound: s.id });
+            }}
+          >
+            ♪ {s.label}
+          </button>
+        ))}
+      </div>
+      <div className="row">
+        <label htmlFor="sound-volume">Głośność</label>
+        <input
+          id="sound-volume"
+          type="range"
+          min={0}
+          max={100}
+          step={5}
+          value={volume}
+          disabled={!soundEnabled}
+          onChange={(e) => setVolume(Number(e.target.value))}
+          onPointerUp={() => {
+            playNotificationSound(notificationSound, volume);
+            void window.overlay.updateSettings({ soundVolume: volume });
+          }}
+          onKeyUp={() => void window.overlay.updateSettings({ soundVolume: volume })}
+        />
+        <span className="small muted">{volume}%</span>
+        <button className="ghost" disabled={!soundEnabled} onClick={() => playNotificationSound(notificationSound, volume)}>
+          Odtwórz
+        </button>
+      </div>
     </div>
   );
 }

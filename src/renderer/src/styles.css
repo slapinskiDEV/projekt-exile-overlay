@@ -1201,3 +1201,10 @@ button.primary {
   font-size: 18px;
   padding: 5px 12px 6px;
 }
+
+code,
+kbd {
+  font-family: var(--font-pixel);
+  font-size: 1em;
+  color: var(--gold-2);
+}

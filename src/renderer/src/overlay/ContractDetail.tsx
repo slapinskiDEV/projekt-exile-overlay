@@ -11,9 +11,12 @@ import { OfferBox, ProblemBox } from './OfferBox';
 const ACTIVE = new Set(['open', 'taken', 'in_progress']);
 
 export function ContractDetail({ id, state, onBack }: { id: string; state: AppState; onBack: () => void }) {
+  // Otwarty kontrakt: zdarzenie od drugiej strony przeładowuje od razu, a zapasowo
+  // co 10 s (0.3.4; wcześniej 30 s, bez reakcji na powiadomienia).
   const { data, error, loading, reload } = useApi(() => window.overlay.contract(id), [id], {
-    refreshMs: 30_000,
+    refreshMs: 10_000,
     enabled: state.panelVisible,
+    contractId: id,
   });
 
   return (
