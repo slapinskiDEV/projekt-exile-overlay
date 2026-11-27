@@ -61,8 +61,17 @@ export function RequestForm({
 
   const [categoryId, setCategoryId] = useState(initialCategory ?? (itemText ? 'crafting' : 'boss_carry'));
   const [text, setText] = useState('');
-  const [area, setArea] = useState(state.area?.name ?? '');
-  const [areaLevel, setAreaLevel] = useState(state.area?.level ? String(state.area.level) : '');
+  // Obszar i poziom idą za grą (0.3.2): przejście do innej lokacji z otwartym formularzem
+  // aktualizuje oba pola naraz. Dopiero ręczna zmiana zatrzymuje podążanie — wtedy
+  // stara nazwa nie zostaje z poziomem nowej lokacji ani odwrotnie.
+  const gameArea = state.area?.name ?? '';
+  const gameLevel = state.area?.level ? String(state.area.level) : '';
+  const [manualArea, setManualArea] = useState<{ name: string; level: string } | null>(null);
+  const area = manualArea?.name ?? gameArea;
+  const areaLevel = manualArea?.level ?? gameLevel;
+  const setArea = (name: string) => setManualArea({ name, level: areaLevel });
+  const setAreaLevel = (level: string) => setManualArea({ name: area, level });
+  const differsFromGame = manualArea !== null && Boolean(gameArea) && (area !== gameArea || areaLevel !== gameLevel);
   const nick = state.settings.nick.trim();
   const [withNick, setWithNick] = useState(Boolean(nick));
   const [createdId, setCreatedId] = useState<string | null>(null);
@@ -235,6 +244,12 @@ export function RequestForm({
             />
           </div>
         </div>
+        {differsFromGame && (
+          <button type="button" className="link area-sync" onClick={() => setManualArea(null)}>
+            ↺ Wpisz obszar z gry: {gameArea}
+            {gameLevel ? ` · ${gameLevel} lvl` : ''}
+          </button>
+        )}
         {!levelValid && <p className="error">Poziom obszaru to liczba od 1 do 100.</p>}
         {offer && (
           <div className="field" style={{ marginTop: 12 }}>

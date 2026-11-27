@@ -42,4 +42,28 @@ describe('RequestForm', () => {
     expect(screen.getByText('Wybierz walutę albo zaznacz „Darmowo”.')).toBeTruthy();
     expect((screen.getByRole('button', { name: 'Wyślij prośbę' }) as HTMLButtonElement).disabled).toBe(true);
   });
+
+  it('obszar i poziom idą za grą, dopóki gracz ich nie zmieni (0.3.2)', () => {
+    const props = { itemText: null, onBack: () => {}, onOpenContract: () => {} };
+    const { rerender } = render(<RequestForm state={state} {...props} />);
+    const areaInput = () => screen.getByLabelText(/Obszar/) as HTMLInputElement;
+    const levelInput = () => screen.getByLabelText('Poziom') as HTMLInputElement;
+
+    const moved = { ...state, area: { name: 'Trial of the Sekhemas', level: 22 } } as AppState;
+    rerender(<RequestForm state={{ ...state, area: { name: 'Kingsmarch', level: 53 } } as AppState} {...props} />);
+    expect(areaInput().value).toBe('Kingsmarch');
+    expect(levelInput().value).toBe('53');
+    rerender(<RequestForm state={moved} {...props} />);
+    expect(areaInput().value).toBe('Trial of the Sekhemas');
+    expect(levelInput().value).toBe('22');
+
+    // Ręczna zmiana zatrzymuje podążanie; przycisk wraca do obszaru z gry.
+    fireEvent.change(areaInput(), { target: { value: 'Moja kryjówka' } });
+    rerender(<RequestForm state={{ ...state, area: { name: 'Kingsmarch', level: 53 } } as AppState} {...props} />);
+    expect(areaInput().value).toBe('Moja kryjówka');
+    expect(levelInput().value).toBe('22');
+    fireEvent.click(screen.getByText(/Wpisz obszar z gry: Kingsmarch · 53 lvl/));
+    expect(areaInput().value).toBe('Kingsmarch');
+    expect(levelInput().value).toBe('53');
+  });
 });
