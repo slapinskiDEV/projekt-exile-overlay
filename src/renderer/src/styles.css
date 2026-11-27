@@ -1168,3 +1168,36 @@ button.primary {
   color: var(--green);
   font-size: 42px;
 }
+
+/* --- „Moje” → Zakończone (0.3.4) ------------------------------------------------ */
+
+.finished-item {
+  opacity: 0.92;
+}
+
+.finished-item .list-item {
+  border-bottom: none;
+}
+
+.finished-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  padding: 8px 12px 10px;
+  background: var(--bg-2);
+  border: 1px solid var(--border);
+  border-top: none;
+}
+
+.finished-actions .small {
+  flex-basis: 100%;
+  text-align: right;
+  color: var(--muted);
+}
+
+.finished-actions button {
+  font-size: 18px;
+  padding: 5px 12px 6px;
+}

@@ -174,7 +174,7 @@ export function OfferBox({
           )}
         </div>
       )}
-      {mine && ['verified', 'cancelled', 'expired'].includes(status) && (
+      {mine && ['completed', 'verified', 'cancelled', 'expired'].includes(status) && (
         <button disabled={pending} onClick={() => perform(() => window.overlay.relistOffer(contract.id), 'Wystawiono ofertę ponownie.')}>
           Wystaw ponownie
         </button>

@@ -14,12 +14,17 @@ export interface StoredSettings {
   clientTxtPath: string | null;
   shortcuts: ShortcutMap;
   soundEnabled: boolean;
+  /** Zakończone kontrakty schowane przez gracza w zakładce „Moje” (0.3.4). */
+  hiddenContracts: string[];
   profile: OverlayProfile | null;
   /** Token urządzenia zaszyfrowany `safeStorage` (base64). */
   tokenEncrypted: string | null;
   /** Token jawnym tekstem — tylko gdy system nie udostępnia szyfrowania. */
   tokenPlain: string | null;
 }
+
+/** Ile schowanych kontraktów pamiętamy — starsze i tak nie wracają w „Moje”. */
+export const MAX_HIDDEN_CONTRACTS = 200;
 
 export const DEFAULT_SETTINGS: StoredSettings = {
   privacyAccepted: false,
@@ -30,6 +35,7 @@ export const DEFAULT_SETTINGS: StoredSettings = {
   clientTxtPath: null,
   shortcuts: DEFAULT_SHORTCUTS,
   soundEnabled: true,
+  hiddenContracts: [],
   profile: null,
   tokenEncrypted: null,
   tokenPlain: null,
@@ -55,6 +61,9 @@ export function mergeSettings(raw: unknown): StoredSettings {
       askItem: typeof shortcuts.askItem === 'string' ? shortcuts.askItem : DEFAULT_SHORTCUTS.askItem,
     },
     soundEnabled: value.soundEnabled !== false,
+    hiddenContracts: Array.isArray(value.hiddenContracts)
+      ? value.hiddenContracts.filter((id): id is string => typeof id === 'string').slice(-MAX_HIDDEN_CONTRACTS)
+      : [],
     profile: value.profile && typeof value.profile === 'object' ? (value.profile as OverlayProfile) : null,
     tokenEncrypted: str(value.tokenEncrypted, null),
     tokenPlain: str(value.tokenPlain, null),

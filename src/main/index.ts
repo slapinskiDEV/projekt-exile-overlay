@@ -16,7 +16,7 @@ import {
 import { parseItemText } from '@shared/poe-item';
 import { isBelowMinVersion } from '@shared/version';
 import { SHORTCUT_LABELS, validateShortcuts, type ShortcutAction } from '@shared/shortcuts';
-import { toPublicSettings, type PublicSettings } from '@shared/settings';
+import { MAX_HIDDEN_CONTRACTS, toPublicSettings, type PublicSettings } from '@shared/settings';
 import {
   OVERLAY_API_METHODS,
   type ApiResult,
@@ -299,6 +299,11 @@ const handlers: OverlayApi = {
       if (typeof patch.nick === 'string') allowed.nick = patch.nick.trim().slice(0, 40);
       if ('clientTxtPath' in patch) allowed.clientTxtPath = typeof patch.clientTxtPath === 'string' ? patch.clientTxtPath : null;
       if (typeof patch.soundEnabled === 'boolean') allowed.soundEnabled = patch.soundEnabled;
+      if (Array.isArray(patch.hiddenContracts)) {
+        allowed.hiddenContracts = patch.hiddenContracts
+          .filter((id): id is string => typeof id === 'string' && id.length <= 64)
+          .slice(-MAX_HIDDEN_CONTRACTS);
+      }
     }
     const pathChanged = 'clientTxtPath' in allowed && allowed.clientTxtPath !== store.get().clientTxtPath;
     store.update(allowed);
