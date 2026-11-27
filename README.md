@@ -43,6 +43,8 @@
 | **3. Graj** | **Alt+H** — lista próśb, **Alt+P** — poproś o pomoc, **Alt+C** — zapytaj o przedmiot pod kursorem. |
 
 Overlay sam sprawdza aktualizacje przy starcie i pyta, czy zainstalować nową wersję.
+Gdy aktualizacja się nie uda, okienko pokaże powód i przycisk **Pobierz ze strony** —
+wystarczy uruchomić nowy instalator na obecną wersję, ustawienia zostaną.
 
 **Oferty i zapłata (od 0.2.0):** oprócz próśb możesz **zaoferować pomoc** („Pomogę zabić
 Arbitra”) z liczbą miejsc — gracze dołączają jak do party. Przy prośbie i ofercie można
@@ -101,7 +103,7 @@ w panelu, kliknij w niego.
 
 - **Przeładuj nakładkę** — czyści pamięć podręczną okna i ustawia panel w domyślnym miejscu.
 - **Otwórz dziennik diagnostyczny** — pokazuje plik `overlay.log` (skróty, monitory,
-  błędy panelu; bez tokenów i treści próśb). Dołącz go do zgłoszenia błędu.
+  błędy panelu i aktualizacji; bez tokenów i treści próśb). Dołącz go do zgłoszenia błędu.
 
 Panel przesuniesz, chwytając go za pasek z logo — zapamięta miejsce. Dwuklik na pasku
 przywraca domyślną pozycję.
