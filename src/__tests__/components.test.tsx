@@ -61,7 +61,7 @@ describe('ContractRow', () => {
     const onOpen = vi.fn();
     render(<ContractRow contract={contract} onOpen={onOpen} />);
     expect(screen.getByText('pomocnicy 2/6')).toBeTruthy();
-    expect(screen.getByText('15 RP')).toBeTruthy();
+    expect(screen.getByText((_, el) => el?.className === 'side-rp' && el.textContent === '15 RP')).toBeTruthy();
     expect(screen.getByText('Przejście Zdrajcy (poziom obszaru 22)')).toBeTruthy();
     expect(screen.getByText('Ten obszar')).toBeTruthy();
     fireEvent.click(screen.getByText('Pomoc z bossem aktu 2'));

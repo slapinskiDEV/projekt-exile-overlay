@@ -34,7 +34,7 @@ import { NotificationPoller } from './notifications';
 import { RealtimeNotifications } from './realtime';
 import { SettingsStore } from './settings-store';
 import { ShortcutManager } from './shortcuts';
-import { checkForUpdates } from './updater';
+import { checkForUpdates, installUpdate, onUpdateAvailable, startBackgroundChecks } from './updater';
 import { diag, diagLogPath, initDiagLog } from './diag-log';
 import { createMainWindow, createOverlayWindow, iconPath, loadView } from './windows';
 
@@ -63,6 +63,7 @@ const runtime: Omit<AppState, 'version' | 'settings' | 'paired'> = {
   nickHint: null,
   character: null,
   updateRequired: null,
+  updateAvailable: null,
   panelVisible: false,
   log: { status: 'idle', path: null },
   shortcutErrors: {},
@@ -475,6 +476,7 @@ const handlers: OverlayApi = {
   },
   openSettings: async () => openMainWindow(store.get().setupDone ? 'settings' : 'setup'),
   checkForUpdates: async () => checkForUpdates(true),
+  installUpdate: async () => installUpdate(),
   copyText: async (text) => {
     await clipboard.writeText(str(text));
   },
@@ -603,7 +605,25 @@ async function start() {
   }
   broadcastState();
 
+  // Nowa wersja (0.3.6): okienko nad grą raz na wersję i pasek w panelu, zamiast
+  // systemowego pytania tylko przy starcie.
+  onUpdateAvailable((version) => {
+    if (runtime.updateAvailable === version) return;
+    runtime.updateAvailable = version;
+    broadcastState();
+    send(overlay, 'notification', {
+      id: `app-update-${version}`,
+      type: 'app_update',
+      title: `Nowa wersja overlaya: ${version}`,
+      message: 'Kliknij „Zainstaluj” — overlay pobierze aktualizację i uruchomi się ponownie.',
+      url: '',
+      isRead: false,
+      createdAt: new Date().toISOString(),
+      contractId: null,
+    });
+  });
   void checkForUpdates(false);
+  startBackgroundChecks();
 }
 
 app.on('second-instance', () => {

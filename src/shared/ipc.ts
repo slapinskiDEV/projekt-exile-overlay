@@ -49,6 +49,8 @@ export interface AppState {
   character: { name: string; className: string; level: number } | null;
   /** Ustawione, gdy API odrzuca tę wersję (HTTP 426 albo /version). */
   updateRequired: { minVersion: string } | null;
+  /** Nowa wersja znaleziona w tle (0.3.6) — pasek w panelu i okienko nad grą. */
+  updateAvailable: string | null;
   panelVisible: boolean;
   log: { status: 'idle' | 'watching' | 'missing'; path: string | null };
   /** Błędy rejestracji skrótów (zajęte przez inną aplikację). */
@@ -111,6 +113,7 @@ export interface OverlayApi {
   openExternal(url: string): Promise<void>;
   openSettings(): Promise<void>;
   checkForUpdates(): Promise<void>;
+  installUpdate(): Promise<void>;
   copyText(text: string): Promise<void>;
 }
 
@@ -160,6 +163,7 @@ export const OVERLAY_API_METHODS: OverlayApiMethod[] = [
   'openExternal',
   'openSettings',
   'checkForUpdates',
+  'installUpdate',
   'copyText',
 ];
 

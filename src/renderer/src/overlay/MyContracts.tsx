@@ -13,6 +13,22 @@ const FINISHED = new Set(['verified', 'cancelled', 'expired', 'rejected']);
 
 type MyContract = MeResponse['contracts'][number];
 
+type View = 'active' | 'issued' | 'helping' | 'finished';
+
+const VIEWS: Array<[View, string]> = [
+  ['active', 'Aktywne'],
+  ['issued', 'Wystawione'],
+  ['helping', 'Biorę udział'],
+  ['finished', 'Zakończone'],
+];
+
+const EMPTY: Record<View, string> = {
+  active: 'Nie masz otwartych próśb, ofert ani zgłoszeń.',
+  issued: 'Nie masz otwartych próśb ani ofert.',
+  helping: 'Nigdzie teraz nie pomagasz.',
+  finished: 'Brak zakończonych kontraktów.',
+};
+
 function roleLabel(contract: MyContract): string {
   if (contract.role === 'issuer') return contract.kind === 'offer' ? 'Moja oferta' : ROLE_LABELS.issuer;
   return ROLE_LABELS[contract.role];
@@ -31,13 +47,21 @@ export function MyContracts({
     contractId: '*',
   });
 
+  const [view, setView] = useState<View>('active');
+  const [kind, setKind] = useState<'' | 'request' | 'offer'>('');
+
   if (!state.paired) return <LoginRequired />;
 
   const hiddenList = state.settings.hiddenContracts ?? [];
   const hidden = new Set(hiddenList);
-  const contracts = data?.contracts ?? [];
-  const active = contracts.filter((c) => !FINISHED.has(c.status));
-  const finished = contracts.filter((c) => FINISHED.has(c.status) && c.role === 'issuer' && !hidden.has(c.id));
+  const contracts = (data?.contracts ?? []).filter((c) => !kind || c.kind === kind);
+  const groups: Record<View, MyContract[]> = {
+    active: contracts.filter((c) => !FINISHED.has(c.status)),
+    issued: contracts.filter((c) => !FINISHED.has(c.status) && c.role === 'issuer'),
+    helping: contracts.filter((c) => !FINISHED.has(c.status) && c.role !== 'issuer'),
+    finished: contracts.filter((c) => FINISHED.has(c.status) && c.role === 'issuer' && !hidden.has(c.id)),
+  };
+  const shown = groups[view];
 
   return (
     <div className="stack">
@@ -52,20 +76,35 @@ export function MyContracts({
           </span>
         </div>
       )}
-      {error && <p className="error">{error.message}</p>}
-      {!data && loading && <p className="muted">Ładowanie…</p>}
-      {data && active.length === 0 && <p className="muted">Nie masz otwartych próśb, ofert ani zgłoszeń.</p>}
-      <div className="list">
-        {active.map((contract) => (
-          <ContractRow key={`${contract.role}-${contract.id}`} contract={contract} onOpen={onOpen} extra={roleLabel(contract)} />
-        ))}
+
+      {/* Filtry (0.3.6): widok i rodzaj. */}
+      <div className="my-filters">
+        <div className="chips" role="radiogroup" aria-label="Widok">
+          {VIEWS.map(([key, label]) => (
+            <button
+              key={key}
+              role="radio"
+              aria-checked={view === key}
+              className={`chip ${view === key ? 'active' : ''}`}
+              onClick={() => setView(key)}
+            >
+              {label} <span className="count">{groups[key].length}</span>
+            </button>
+          ))}
+        </div>
+        <select value={kind} onChange={(e) => setKind(e.target.value as '' | 'request' | 'offer')} aria-label="Rodzaj">
+          <option value="">Prośby i oferty</option>
+          <option value="request">Tylko prośby</option>
+          <option value="offer">Tylko oferty</option>
+        </select>
       </div>
 
-      {finished.length > 0 && (
-        <>
-          <h3>Zakończone</h3>
-          <div className="list">
-            {finished.map((contract) => (
+      {error && <p className="error">{error.message}</p>}
+      {!data && loading && <p className="muted">Ładowanie…</p>}
+      {data && shown.length === 0 && <p className="muted">{EMPTY[view]}</p>}
+      <div className="list">
+        {view === 'finished'
+          ? shown.map((contract) => (
               <FinishedRow
                 key={contract.id}
                 contract={contract}
@@ -76,10 +115,11 @@ export function MyContracts({
                   onOpen(id);
                 }}
               />
+            ))
+          : shown.map((contract) => (
+              <ContractRow key={`${contract.role}-${contract.id}`} contract={contract} onOpen={onOpen} extra={roleLabel(contract)} />
             ))}
-          </div>
-        </>
-      )}
+      </div>
     </div>
   );
 }

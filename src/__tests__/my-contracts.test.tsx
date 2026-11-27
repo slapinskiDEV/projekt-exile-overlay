@@ -53,7 +53,10 @@ describe('Moje — zakończone (0.3.4)', () => {
   it('pokazuje zakończone, pomija schowane; usunięcie wymaga potwierdzenia', async () => {
     const onOpen = vi.fn();
     render(<MyContracts state={state} onOpen={onOpen} />);
-    expect(await screen.findByText('Zakończone')).toBeTruthy();
+    // Filtr „Zakończone” (0.3.6) — domyślnie widać aktywne.
+    expect(await screen.findByText('Pomogę zabić Arbitra')).toBeTruthy();
+    expect(screen.queryByText('Stara oferta')).toBeNull();
+    fireEvent.click(screen.getByRole('radio', { name: /Zakończone/ }));
     expect(screen.getByText('Stara oferta')).toBeTruthy();
     expect(screen.queryByText('Schowana')).toBeNull();
 
@@ -66,7 +69,8 @@ describe('Moje — zakończone (0.3.4)', () => {
   it('„Wystaw ponownie” tworzy nową ofertę i ją otwiera', async () => {
     const onOpen = vi.fn();
     render(<MyContracts state={state} onOpen={onOpen} />);
-    fireEvent.click(await screen.findByRole('button', { name: 'Wystaw ponownie' }));
+    fireEvent.click(await screen.findByRole('radio', { name: /Zakończone 1/ }));
+    fireEvent.click(screen.getByRole('button', { name: 'Wystaw ponownie' }));
     await vi.waitFor(() => expect(onOpen).toHaveBeenCalledWith('new'));
     expect(relistOffer).toHaveBeenCalledWith('b');
   });

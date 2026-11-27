@@ -2,7 +2,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import { createApiClient } from '../main/api';
-import { OfferBox } from '../renderer/src/overlay/OfferBox';
+import { OfferActions } from '../renderer/src/overlay/OfferBox';
 import { ContractRow } from '../renderer/src/overlay/ContractRow';
 import type { ContractDetailResponse, OverlayContract } from '../shared/api-types';
 
@@ -57,7 +57,7 @@ describe('oferty w overlayu', () => {
       await fn();
       return true;
     });
-    render(<OfferBox contract={detail('open')} applications={[]} me="other" paired pending={false} perform={perform as never} />);
+    render(<OfferActions contract={detail('open')} applications={[]} me="other" paired pending={false} perform={perform as never} />);
     fireEvent.click(screen.getByText('Dołącz'));
     expect(joinOffer).toHaveBeenCalledWith('c1');
   });
@@ -70,7 +70,7 @@ describe('oferty w overlayu', () => {
       return true;
     });
     render(
-      <OfferBox contract={detail('completed')} applications={applications('awaiting')} me="me" paired pending={false} perform={perform as never} />,
+      <OfferActions contract={detail('completed')} applications={applications('awaiting')} me="me" paired pending={false} perform={perform as never} />,
     );
     fireEvent.click(screen.getByText('Potwierdzam'));
     expect(confirmOffer).toHaveBeenCalledWith('c1');
@@ -84,7 +84,7 @@ describe('oferty w overlayu', () => {
       return true;
     });
     render(
-      <OfferBox contract={detail('in_progress')} applications={applications()} me="author" paired pending={false} perform={perform as never} />,
+      <OfferActions contract={detail('in_progress')} applications={applications()} me="author" paired pending={false} perform={perform as never} />,
     );
     fireEvent.click(screen.getByText('Wykonane'));
     fireEvent.click(screen.getByText('Potwierdź obecnych (1)'));

@@ -28,6 +28,8 @@ export function OverlayApp() {
   const state = useAppState();
   const [tab, setTab] = useState<Tab>('requests');
   const [screen, setScreen] = useState<Screen>({ kind: 'tab' });
+  const [updateDismissed, setUpdateDismissed] = useState(false);
+  const [installing, setInstalling] = useState(false);
 
   useEffect(
     () =>
@@ -162,6 +164,28 @@ export function OverlayApp() {
             )}
             {!state.paired && <span className="area-chip warn">tryb podglądu</span>}
           </div>
+          {state.updateAvailable && !updateDismissed && !state.updateRequired && (
+            <div className="update-bar" role="status">
+              <span>
+                ⬆ Nowa wersja <strong>{state.updateAvailable}</strong>
+              </span>
+              <span className="row tight">
+                <button
+                  className="primary small-button"
+                  disabled={installing}
+                  onClick={() => {
+                    setInstalling(true);
+                    void window.overlay.installUpdate();
+                  }}
+                >
+                  {installing ? 'Pobieranie…' : 'Zainstaluj'}
+                </button>
+                <button className="ghost small-button" onClick={() => setUpdateDismissed(true)}>
+                  Później
+                </button>
+              </span>
+            </div>
+          )}
           {screen.kind === 'tab' && !state.updateRequired && (
             <div className="tabs">
               <button className={tab === 'requests' ? 'active' : ''} onClick={() => setTab('requests')}>

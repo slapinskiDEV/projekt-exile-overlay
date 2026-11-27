@@ -13,7 +13,12 @@ import { describeUpdateError } from './update-error';
  */
 const RELEASES_URL = 'https://github.com/slapinskiDEV/projekt-exile-overlay/releases/latest';
 
+/** Co ile sprawdzać w tle (0.3.6) — gracze trzymają overlay włączony całymi dniami. */
+const BACKGROUND_CHECK_MS = 2 * 60 * 60 * 1000;
+
 let initialized = false;
+let onAvailable: (version: string) => void = () => undefined;
+let timer: NodeJS.Timeout | null = null;
 let manualCheck = false;
 let busy = false;
 /** Etap, w którym wystąpił błąd — zdarzenie `error` przychodzi i przy sprawdzaniu, i przy pobieraniu. */
@@ -52,7 +57,14 @@ function init() {
   };
 
   autoUpdater.on('update-available', async (info) => {
-    diag('updater:available', { version: info.version });
+    diag('updater:available', { version: info.version, manual: manualCheck });
+    // Ciche sprawdzenie (start, co 2 h): bez systemowego okienka, które w grze łatwo
+    // przeoczyć — overlay pokazuje okienko nad grą i pasek w panelu.
+    if (!manualCheck) {
+      busy = false;
+      onAvailable(info.version);
+      return;
+    }
     const { response } = await dialog.showMessageBox({
       type: 'info',
       title: 'Projekt Exile Overlay',
@@ -93,6 +105,39 @@ function init() {
     diag('updater:failed', { phase, message: error?.message?.slice(0, 1_000) });
     void showUpdateError(error);
   });
+}
+
+/** Powiadomienie o nowej wersji znalezionej po cichu. */
+export function onUpdateAvailable(listener: (version: string) => void): void {
+  onAvailable = listener;
+}
+
+/** Sprawdzanie w tle co 2 h — pierwsze przy starcie robi `checkForUpdates(false)`. */
+export function startBackgroundChecks(): void {
+  if (timer || !app.isPackaged) return;
+  timer = setInterval(() => void checkForUpdates(false), BACKGROUND_CHECK_MS);
+}
+
+/** „Zainstaluj” z okienka w overlayu: pobranie i restart do nowej wersji. */
+export async function installUpdate(): Promise<void> {
+  if (!app.isPackaged) return;
+  init();
+  errorShown = false;
+  diag('updater:install');
+  try {
+    // Pobranie wymaga świeżego sprawdzenia w tym procesie — po cichu, bez drugiego
+    // pytania „Zainstalować?”; dopiero pobieranie liczy się jako ręczne (błąd widać).
+    manualCheck = false;
+    phase = 'check';
+    await autoUpdater.checkForUpdates();
+    manualCheck = true;
+    phase = 'download';
+    busy = true;
+    await autoUpdater.downloadUpdate();
+  } catch (error) {
+    busy = false;
+    await showUpdateError(error);
+  }
 }
 
 export async function checkForUpdates(manual: boolean): Promise<void> {

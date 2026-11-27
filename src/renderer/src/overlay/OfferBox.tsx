@@ -5,11 +5,71 @@ import { LoginRequired } from '../components/common';
 
 type Perform = <T>(fn: () => Promise<ApiResult<T>>, success: string) => Promise<boolean>;
 
+type Applications = ContractDetailResponse['applications'];
+
+function offerResult(value: string | null) {
+  return value === 'confirmed'
+    ? '✓ potwierdził'
+    : value === 'problem'
+      ? '⚠ zgłosił problem'
+      : value === 'awaiting'
+        ? '⏳ czeka na potwierdzenie'
+        : '';
+}
+
+/** Lista uczestników oferty (podzakładka „Uczestnicy”, 0.3.6). */
+export function OfferParticipants({
+  contract,
+  applications,
+  me,
+  pending,
+  perform,
+}: {
+  contract: ContractDetailResponse['contract'];
+  applications: Applications;
+  me: string | null;
+  pending: boolean;
+  perform: Perform;
+}) {
+  const joined = applications.filter((a) => a.status === 'accepted');
+  const mine = me !== null && contract.issuer.id === me;
+  if (joined.length === 0) return <p className="muted">Nikt jeszcze nie dołączył.</p>;
+  return (
+    <div className="people">
+      {joined.map((p) => (
+        <div key={p.id} className="person">
+          <span className="person-name">{p.applicantName ?? 'Gracz'}</span>
+          <span className="small muted">{offerResult(p.offerResult)}</span>
+          {mine && contract.status === 'open' && (
+            <button
+              className="ghost icon-only"
+              disabled={pending}
+              title="Usuń z oferty"
+              aria-label={`Usuń ${p.applicantName ?? 'gracza'} z oferty`}
+              onClick={() => perform(() => window.overlay.removeFromOffer(contract.id, p.applicantId), 'Gracz usunięty z oferty.')}
+            >
+              ✕
+            </button>
+          )}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+/** Czy w ofercie jest coś do zrobienia dla tego gracza (blok „Twój ruch”). */
+export function offerHasAction(contract: ContractDetailResponse['contract'], applications: Applications, me: string | null) {
+  const mine = me !== null && contract.issuer.id === me;
+  if (mine) return true;
+  const myEntry = applications.find((a) => a.applicantId === me);
+  return contract.status === 'open' || (contract.status === 'completed' && myEntry?.offerResult === 'awaiting');
+}
+
 /**
- * Oferta pomocy (spec 0192 serwisu): „Dołącz / Wyjdź” jak w party, a dla autora
+ * Akcje oferty (spec 0192 serwisu): „Dołącz / Wyjdź” jak w party, a dla autora
  * „Zaczynamy”, „Wykonane” z listą obecnych, zamknięcie i „Wystaw ponownie”.
  */
-export function OfferBox({
+export function OfferActions({
   contract,
   applications,
   me,
@@ -18,7 +78,7 @@ export function OfferBox({
   perform,
 }: {
   contract: ContractDetailResponse['contract'];
-  applications: ContractDetailResponse['applications'];
+  applications: Applications;
   me: string | null;
   paired: boolean;
   pending: boolean;
@@ -35,118 +95,121 @@ export function OfferBox({
   const [closing, setClosing] = useState(false);
   const [reason, setReason] = useState('');
 
-  const result = (value: string | null) =>
-    value === 'confirmed' ? 'potwierdził' : value === 'problem' ? 'zgłosił problem' : value === 'awaiting' ? 'czeka na potwierdzenie' : '';
-
   return (
-    <div className="card stack">
-      <strong>
-        Uczestnicy {joined.length}/{contract.maxHelpers}
-      </strong>
-      {joined.length === 0 && <p className="small muted">Nikt jeszcze nie dołączył.</p>}
-      {joined.map((p) => (
-        <div key={p.id} className="spread">
-          {mine && choosing ? (
-            <label className="checkbox">
-              <input
-                type="checkbox"
-                checked={selected.includes(p.applicantId)}
-                onChange={(e) =>
-                  setSelected((list) => (e.target.checked ? [...list, p.applicantId] : list.filter((id) => id !== p.applicantId)))
-                }
-              />
-              {p.applicantName ?? 'Gracz'}
-            </label>
-          ) : (
-            <span>{p.applicantName ?? 'Gracz'}</span>
-          )}
-          <span className="row">
-            <span className="small muted">{result(p.offerResult)}</span>
-            {mine && status === 'open' && (
-              <button
-                className="ghost"
-                disabled={pending}
-                title="Usuń z oferty"
-                onClick={() => perform(() => window.overlay.removeFromOffer(contract.id, p.applicantId), 'Gracz usunięty z oferty.')}
-              >
-                ✕
-              </button>
-            )}
-          </span>
-        </div>
-      ))}
-
+    <div className="stack">
       {/* Gracz */}
       {!mine && status === 'open' && !paired && <LoginRequired />}
       {!mine && status === 'open' && paired && (
-        <div className="row">
-          {inOffer ? (
-            <button className="danger" disabled={pending} onClick={() => perform(() => window.overlay.leaveOffer(contract.id), 'Wyszedłeś z oferty.')}>
-              Wyjdź
-            </button>
-          ) : myEntry?.status === 'rejected' ? (
-            <p className="small error">Autor usunął Cię z tej oferty.</p>
-          ) : (
-            <button
-              className="primary"
-              disabled={pending || free <= 0}
-              onClick={() => perform(() => window.overlay.joinOffer(contract.id), 'Dołączono. Autor dostanie powiadomienie.')}
-            >
-              {free > 0 ? 'Dołącz' : 'Brak miejsc'}
-            </button>
-          )}
-        </div>
+        <>
+          <p className="step-hint">
+            {inOffer
+              ? 'Jesteś w tej ofercie. Autor da znać, kiedy zaczynacie.'
+              : free > 0
+                ? `Wolne miejsca: ${free}. Dołącz jak do party — bez czekania na akceptację.`
+                : 'Wszystkie miejsca są zajęte.'}
+          </p>
+          <div className="row">
+            {inOffer ? (
+              <button className="danger" disabled={pending} onClick={() => perform(() => window.overlay.leaveOffer(contract.id), 'Wyszedłeś z oferty.')}>
+                Wyjdź z oferty
+              </button>
+            ) : myEntry?.status === 'rejected' ? (
+              <p className="small error">Autor usunął Cię z tej oferty.</p>
+            ) : (
+              <button
+                className="primary"
+                disabled={pending || free <= 0}
+                onClick={() => perform(() => window.overlay.joinOffer(contract.id), 'Dołączono. Autor dostanie powiadomienie.')}
+              >
+                {free > 0 ? 'Dołącz' : 'Brak miejsc'}
+              </button>
+            )}
+          </div>
+        </>
       )}
       {!mine && status === 'completed' && myEntry?.offerResult === 'awaiting' && (
-        <div className="stack">
-          <p className="small">Autor oznaczył ofertę jako wykonaną. Potwierdź pomoc albo zgłoś problem niżej.</p>
+        <>
+          <p className="step-hint">Autor oznaczył ofertę jako wykonaną. Potwierdź pomoc albo zgłoś problem w zakładce „Opis”.</p>
           <button className="primary" disabled={pending} onClick={() => perform(() => window.overlay.confirmOffer(contract.id), 'Potwierdzono. Dziękujemy!')}>
             Potwierdzam
           </button>
-        </div>
+        </>
       )}
 
       {/* Autor */}
       {mine && status === 'open' && (
-        <button className="primary" disabled={pending || joined.length === 0} onClick={() => perform(() => window.overlay.startOffer(contract.id), 'Zaczynamy!')}>
-          Zaczynamy
-        </button>
+        <>
+          <p className="step-hint">
+            {joined.length === 0 ? 'Czekasz na graczy — dostaniesz powiadomienie, gdy ktoś dołączy.' : `Dołączyło ${joined.length} z ${contract.maxHelpers}. Gotowi?`}
+          </p>
+          <button className="primary" disabled={pending || joined.length === 0} onClick={() => perform(() => window.overlay.startOffer(contract.id), 'Zaczynamy!')}>
+            Zaczynamy
+          </button>
+        </>
       )}
       {mine && status === 'in_progress' && !choosing && (
-        <button
-          className="primary"
-          onClick={() => {
-            setSelected(joined.map((p) => p.applicantId));
-            setChoosing(true);
-          }}
-        >
-          Wykonane
-        </button>
-      )}
-      {mine && status === 'in_progress' && choosing && (
-        <div className="row">
+        <>
+          <p className="step-hint">Po wszystkim kliknij „Wykonane” i zaznacz, kto był.</p>
           <button
             className="primary"
-            disabled={pending || selected.length === 0}
-            onClick={async () => {
-              if (await perform(() => window.overlay.completeOffer(contract.id, selected), 'Wysłano prośby o potwierdzenie.')) setChoosing(false);
+            onClick={() => {
+              setSelected(joined.map((p) => p.applicantId));
+              setChoosing(true);
             }}
           >
-            Potwierdź obecnych ({selected.length})
+            Wykonane
           </button>
-          <button className="ghost" onClick={() => setChoosing(false)}>
-            Wróć
-          </button>
-        </div>
+        </>
       )}
-      {mine && ['open', 'in_progress', 'completed'].includes(status) && (
-        <div className="stack">
-          {closing ? (
-            <>
-              {status !== 'completed' && (
-                <input type="text" maxLength={500} placeholder="Powód (opcjonalnie)" value={reason} onChange={(e) => setReason(e.target.value)} />
-              )}
-              <div className="row">
+      {mine && status === 'in_progress' && choosing && (
+        <>
+          <p className="step-hint">Zaznacz, kto był — dostaną prośbę o potwierdzenie.</p>
+          <div className="people">
+            {joined.map((p) => (
+              <label key={p.id} className="person checkbox">
+                <input
+                  type="checkbox"
+                  checked={selected.includes(p.applicantId)}
+                  onChange={(e) =>
+                    setSelected((list) => (e.target.checked ? [...list, p.applicantId] : list.filter((id) => id !== p.applicantId)))
+                  }
+                />
+                <span className="person-name">{p.applicantName ?? 'Gracz'}</span>
+              </label>
+            ))}
+          </div>
+          <div className="row">
+            <button
+              className="primary"
+              disabled={pending || selected.length === 0}
+              onClick={async () => {
+                if (await perform(() => window.overlay.completeOffer(contract.id, selected), 'Wysłano prośby o potwierdzenie.')) setChoosing(false);
+              }}
+            >
+              Potwierdź obecnych ({selected.length})
+            </button>
+            <button className="ghost" onClick={() => setChoosing(false)}>
+              Wróć
+            </button>
+          </div>
+        </>
+      )}
+      {mine && status === 'completed' && (
+        <p className="step-hint">RP dostajesz od tych, którzy potwierdzili. Oferta zamknie się sama po 7 dniach.</p>
+      )}
+      {mine && ['open', 'in_progress', 'completed', 'verified', 'cancelled', 'expired'].includes(status) && (
+        <div className="row secondary-actions">
+          {['completed', 'verified', 'cancelled', 'expired'].includes(status) && (
+            <button disabled={pending} onClick={() => perform(() => window.overlay.relistOffer(contract.id), 'Wystawiono ofertę ponownie.')}>
+              Wystaw ponownie
+            </button>
+          )}
+          {['open', 'in_progress', 'completed'].includes(status) &&
+            (closing ? (
+              <>
+                {status !== 'completed' && (
+                  <input type="text" maxLength={500} placeholder="Powód (opcjonalnie)" value={reason} onChange={(e) => setReason(e.target.value)} />
+                )}
                 <button
                   className="danger"
                   disabled={pending}
@@ -162,22 +225,13 @@ export function OfferBox({
                 <button className="ghost" onClick={() => setClosing(false)}>
                   Anuluj
                 </button>
-              </div>
-            </>
-          ) : (
-            <button className="danger" onClick={() => setClosing(true)}>
-              {status === 'completed' ? 'Zamknij ofertę' : 'Odwołaj ofertę'}
-            </button>
-          )}
-          {status === 'completed' && (
-            <p className="small muted">RP dostajesz od tych, którzy potwierdzili. Oferta zamknie się sama po 7 dniach.</p>
-          )}
+              </>
+            ) : (
+              <button className="ghost danger-text" onClick={() => setClosing(true)}>
+                {status === 'completed' ? 'Zamknij ofertę' : 'Odwołaj ofertę'}
+              </button>
+            ))}
         </div>
-      )}
-      {mine && ['completed', 'verified', 'cancelled', 'expired'].includes(status) && (
-        <button disabled={pending} onClick={() => perform(() => window.overlay.relistOffer(contract.id), 'Wystawiono ofertę ponownie.')}>
-          Wystaw ponownie
-        </button>
       )}
     </div>
   );
