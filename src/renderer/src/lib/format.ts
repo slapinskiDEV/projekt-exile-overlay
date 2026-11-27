@@ -32,7 +32,7 @@ export function areaLabel(area: string | null, level: number | null): string | n
 
 export const CONTRACT_URL = (id: string) => `https://projektexile.pl/contracts/${id}`;
 
-/** Kategorie oferowane w formularzu „Poproś o pomoc” (kolejność i domyślne nazwy). */
+/** Zapas na wypadek braku połączenia z API — normalnie kategorie przychodzą ze strony. */
 export const REQUEST_CATEGORIES: Array<{ id: string; label: string }> = [
   { id: 'boss_carry', label: 'Pomoc z bossem' },
   { id: 'leveling', label: 'Levelowanie / akt' },

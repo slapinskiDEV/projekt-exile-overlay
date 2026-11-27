@@ -29,11 +29,11 @@ export function RequestForm({
   onOpenContract: (id: string) => void;
 }) {
   const apiCategories = useCategories();
-  const categories = useMemo(() => {
-    const labels = new Map(apiCategories.map((c) => [c.id, c.label]));
-    const offered = REQUEST_CATEGORIES.filter((c) => apiCategories.length === 0 || labels.has(c.id));
-    return offered.map((c) => ({ id: c.id, label: labels.get(c.id) ?? c.label }));
-  }, [apiCategories]);
+  // Te same kategorie co na stronie (0.2.2); lista wbudowana tylko, gdy API nie odpowiada.
+  const categories = useMemo(
+    () => (apiCategories.length > 0 ? apiCategories : REQUEST_CATEGORIES),
+    [apiCategories],
+  );
 
   const [categoryId, setCategoryId] = useState(initialCategory ?? (itemText ? 'crafting' : 'boss_carry'));
   const [text, setText] = useState('');
