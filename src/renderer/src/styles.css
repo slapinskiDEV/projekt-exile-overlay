@@ -10,9 +10,11 @@
   --gold-2: #e6c14a;
   --red: #e5534b;
   --green: #5fbf6a;
-  --font-pixel: 'Jersey 10', 'VT323', monospace;
-  --font-mono: 'VT323', ui-monospace, monospace;
-  --font-body: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  /* Jedna czcionka w całej nakładce (0.3.1) — wcześniej mieszały się Jersey 10, VT323
+     i systemowa, a drobne napisy były nieczytelne. */
+  --font-pixel: 'Jersey 10', 'Segoe UI', sans-serif;
+  --font-mono: var(--font-pixel);
+  --font-body: var(--font-pixel);
   color-scheme: dark;
 }
 
@@ -29,8 +31,12 @@ body,
 
 body {
   font-family: var(--font-body);
-  font-size: 14px;
-  line-height: 1.45;
+  font-size: 21px;
+  line-height: 1.25;
+  letter-spacing: 0.04em;
+  word-spacing: 0.08em;
+  /* Jersey 10 ma tylko jedną grubość — sztuczne pogrubienie rozmazuje piksele. */
+  font-synthesis: none;
   color: var(--text);
   background: var(--bg);
   -webkit-font-smoothing: antialiased;
@@ -50,25 +56,25 @@ h3,
 .pixel {
   font-family: var(--font-pixel);
   font-weight: 400;
-  letter-spacing: 0.02em;
+  letter-spacing: 0.04em;
 }
 
 h1 {
-  font-size: 34px;
+  font-size: 51px;
   line-height: 1;
   margin: 0 0 12px;
   color: var(--gold-2);
 }
 
 h2 {
-  font-size: 24px;
+  font-size: 36px;
   line-height: 1.05;
   margin: 0 0 8px;
   color: var(--gold-2);
 }
 
 h3 {
-  font-size: 19px;
+  font-size: 29px;
   margin: 14px 0 6px;
   color: var(--text);
 }
@@ -86,12 +92,12 @@ a {
 }
 
 .small {
-  font-size: 12px;
+  font-size: 18px;
 }
 
 .error {
   color: var(--red);
-  font-size: 13px;
+  font-size: 20px;
   margin: 6px 0;
 }
 
@@ -126,7 +132,7 @@ a {
 button,
 .button {
   font-family: var(--font-pixel);
-  font-size: 18px;
+  font-size: 20px;
   line-height: 1;
   padding: 7px 14px 8px;
   color: var(--text);
@@ -182,7 +188,7 @@ button.link {
 
 label {
   display: block;
-  font-size: 13px;
+  font-size: 20px;
   color: var(--muted);
   margin-bottom: 4px;
 }
@@ -218,7 +224,7 @@ textarea {
   align-items: center;
   gap: 8px;
   color: var(--text);
-  font-size: 14px;
+  font-size: 21px;
   margin: 4px 0;
   cursor: pointer;
 }
@@ -229,7 +235,7 @@ textarea {
 
 .code-input {
   font-family: var(--font-mono) !important;
-  font-size: 28px !important;
+  font-size: 30px !important;
   letter-spacing: 0.25em;
   text-transform: uppercase;
   text-align: center;
@@ -246,7 +252,7 @@ textarea {
 .badge {
   display: inline-block;
   font-family: var(--font-pixel);
-  font-size: 15px;
+  font-size: 17px;
   line-height: 1;
   padding: 2px 6px 3px;
   border: 1px solid var(--border-strong);
@@ -270,7 +276,7 @@ textarea {
 }
 
 .disclaimer {
-  font-size: 12px;
+  font-size: 18px;
   color: var(--muted);
   font-style: italic;
 }
@@ -304,7 +310,7 @@ textarea {
 
 .brand span {
   font-family: var(--font-pixel);
-  font-size: 26px;
+  font-size: 28px;
   color: var(--gold-2);
 }
 
@@ -354,7 +360,7 @@ textarea {
   background: var(--bg-2);
   cursor: pointer;
   color: var(--text);
-  font-size: 14px;
+  font-size: 21px;
   margin: 0;
 }
 
@@ -364,7 +370,7 @@ textarea {
 
 .path {
   font-family: var(--font-mono);
-  font-size: 17px;
+  font-size: 19px;
   word-break: break-all;
   background: var(--bg);
   border: 1px solid var(--border);
@@ -373,7 +379,7 @@ textarea {
 
 .shortcut-input {
   font-family: var(--font-mono) !important;
-  font-size: 20px !important;
+  font-size: 22px !important;
   text-align: center;
   cursor: pointer;
   caret-color: transparent;
@@ -426,7 +432,7 @@ textarea {
 
 .panel-header .title {
   font-family: var(--font-pixel);
-  font-size: 20px;
+  font-size: 22px;
   color: var(--gold-2);
   flex: 1;
 }
@@ -436,7 +442,7 @@ textarea {
   flex-wrap: wrap;
   gap: 6px;
   padding: 8px 12px;
-  font-size: 12px;
+  font-size: 18px;
   color: var(--muted);
   border-bottom: 1px solid var(--border);
 }
@@ -449,7 +455,7 @@ textarea {
   background: rgba(255, 255, 255, 0.04);
   border: 1px solid var(--border);
   color: var(--text);
-  font-size: 12px;
+  font-size: 18px;
 }
 
 .area-chip.unknown {
@@ -473,7 +479,7 @@ textarea {
   border-bottom: 2px solid transparent;
   color: var(--muted);
   padding: 10px 4px;
-  font-size: 20px;
+  font-size: 30px;
 }
 
 .tabs button.active {
@@ -501,7 +507,7 @@ textarea {
   width: 100%;
   text-align: left;
   font-family: var(--font-body);
-  font-size: 13px;
+  font-size: 20px;
   line-height: 1.35;
   padding: 10px 12px 10px 14px;
   background: linear-gradient(90deg, rgba(255, 255, 255, 0.025), transparent 40%), var(--bg-2);
@@ -527,13 +533,13 @@ textarea {
 
 .list-item .item-title {
   font-weight: 600;
-  font-size: 15px;
+  font-size: 23px;
   margin: 6px 0 3px;
   color: #fff;
 }
 
 .list-item .where {
-  font-size: 12px;
+  font-size: 18px;
   color: #cfcfcf;
   margin-bottom: 4px;
 }
@@ -547,7 +553,7 @@ textarea {
   gap: 8px;
   flex-wrap: wrap;
   color: var(--muted);
-  font-size: 12px;
+  font-size: 18px;
 }
 
 .rp {
@@ -563,7 +569,7 @@ textarea {
 }
 
 .message .who {
-  font-size: 12px;
+  font-size: 18px;
   color: var(--muted);
 }
 
@@ -601,7 +607,7 @@ textarea {
 
 .toast .toast-title {
   font-family: var(--font-pixel);
-  font-size: 19px;
+  font-size: 21px;
   color: var(--gold-2);
   line-height: 1.05;
   margin-bottom: 4px;
@@ -629,7 +635,7 @@ textarea {
 .item-card {
   position: relative;
   font-family: var(--font-pixel);
-  font-size: 16px;
+  font-size: 18px;
   text-align: center;
   background: #0b0b0b;
   border: 1px solid;
@@ -640,7 +646,7 @@ textarea {
   position: absolute;
   top: 4px;
   right: 4px;
-  font-size: 13px;
+  font-size: 20px;
   padding: 2px 6px;
   color: #8a8a8a;
   background: transparent;
@@ -653,7 +659,7 @@ textarea {
 }
 
 .item-card .name {
-  font-size: 19px;
+  font-size: 29px;
   line-height: 1.1;
 }
 
@@ -663,7 +669,7 @@ textarea {
 
 .item-card .class {
   margin-top: 2px;
-  font-size: 14px;
+  font-size: 21px;
   color: #7f7f7f;
 }
 
@@ -708,7 +714,7 @@ textarea {
   padding: 28px 12px 8px;
   text-align: left;
   font-family: var(--font-mono);
-  font-size: 15px;
+  font-size: 17px;
   white-space: pre-wrap;
   color: #c8c8c8;
 }
@@ -737,7 +743,7 @@ button {
   border: 1px solid rgba(232, 145, 74, 0.5);
   background: rgba(232, 145, 74, 0.1);
   padding: 6px 8px;
-  font-size: 12px;
+  font-size: 18px;
   line-height: 1.35;
 }
 
@@ -775,7 +781,7 @@ button.wide {
 }
 
 button.big {
-  font-size: 22px;
+  font-size: 33px;
   padding: 11px 16px 12px;
 }
 
@@ -794,19 +800,19 @@ button.primary {
 
 .label {
   display: block;
-  font-size: 13px;
+  font-size: 20px;
   color: var(--muted);
   margin-bottom: 6px;
 }
 
 .hint {
   color: var(--green);
-  font-size: 12px;
+  font-size: 18px;
 }
 
 .kind-tag {
   font-family: var(--font-pixel);
-  font-size: 15px;
+  font-size: 17px;
   line-height: 1;
   padding: 2px 7px 3px;
   color: #111;
@@ -844,13 +850,13 @@ button.primary {
 .kind-switch button strong {
   font-family: var(--font-pixel);
   font-weight: 400;
-  font-size: 22px;
+  font-size: 24px;
   color: var(--text);
 }
 
 .kind-switch button span {
   font-family: var(--font-body);
-  font-size: 12px;
+  font-size: 18px;
   color: var(--muted);
 }
 
@@ -889,12 +895,12 @@ button.primary {
 .cta strong {
   font-family: var(--font-pixel);
   font-weight: 400;
-  font-size: 20px;
+  font-size: 22px;
   color: var(--accent);
 }
 
 .cta span {
-  font-size: 12px;
+  font-size: 18px;
   color: var(--muted);
 }
 
@@ -927,12 +933,12 @@ button.primary {
 .empty strong {
   font-family: var(--font-pixel);
   font-weight: 400;
-  font-size: 20px;
+  font-size: 22px;
   color: var(--text);
 }
 
 .empty span {
-  font-size: 12px;
+  font-size: 18px;
   color: var(--muted);
 }
 
@@ -982,7 +988,7 @@ button.primary {
 
 .request-form .checkbox {
   align-items: flex-start;
-  font-size: 13px;
+  font-size: 20px;
 }
 
 .request-form .checkbox input {
@@ -1005,12 +1011,12 @@ button.primary {
 
 .form-hero p {
   margin: 0 0 4px;
-  font-size: 13px;
+  font-size: 20px;
   color: #cfcfcf;
 }
 
 .form-hero-icon {
-  font-size: 30px;
+  font-size: 45px;
   line-height: 1;
 }
 
@@ -1025,7 +1031,7 @@ button.primary {
   align-items: center;
   gap: 8px;
   margin: 0 0 10px;
-  font-size: 20px;
+  font-size: 30px;
 }
 
 .step {
@@ -1034,7 +1040,7 @@ button.primary {
   justify-content: center;
   width: 22px;
   height: 22px;
-  font-size: 16px;
+  font-size: 24px;
   color: #111;
   background: var(--gold);
 }
@@ -1046,7 +1052,7 @@ button.primary {
 .field-foot {
   display: flex;
   justify-content: space-between;
-  font-size: 11px;
+  font-size: 17px;
   color: var(--muted);
   margin-top: 4px;
 }
@@ -1059,7 +1065,7 @@ button.primary {
 
 .chip {
   font-family: var(--font-body);
-  font-size: 13px;
+  font-size: 20px;
   line-height: 1.2;
   padding: 6px 10px;
   background: var(--bg);
@@ -1071,7 +1077,7 @@ button.primary {
   width: 40px;
   padding: 6px 0;
   font-family: var(--font-pixel);
-  font-size: 20px;
+  font-size: 22px;
 }
 
 .chip.active,
@@ -1100,12 +1106,12 @@ button.primary {
 .pay-toggle button strong {
   font-family: var(--font-pixel);
   font-weight: 400;
-  font-size: 19px;
+  font-size: 21px;
 }
 
 .pay-toggle button span {
   font-family: var(--font-body);
-  font-size: 12px;
+  font-size: 18px;
   color: var(--muted);
 }
 
@@ -1152,7 +1158,7 @@ button.primary {
   width: 56px;
   height: 56px;
   margin-bottom: 10px;
-  font-size: 30px;
+  font-size: 45px;
   color: #111;
   background: var(--green);
   box-shadow: 0 0 30px rgba(95, 191, 106, 0.4);
@@ -1160,5 +1166,5 @@ button.primary {
 
 .done-card h2 {
   color: var(--green);
-  font-size: 28px;
+  font-size: 42px;
 }
